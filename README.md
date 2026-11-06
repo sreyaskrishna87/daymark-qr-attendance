@@ -2,6 +2,28 @@
 
 A full-stack, real-time office attendance system with **server-signed rotating QR challenges**, **token-authenticated worker links**, **anti-replay tracking**, and **GPS office proximity geofencing**.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://dashboard.render.com/blueprints/new?repo=https://github.com/sreyaskrishna87/daymark-qr-attendance)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/github?template=https://github.com/sreyaskrishna87/daymark-qr-attendance)
+
+---
+
+## 🚀 1-Click Real Cloud Deployment (Free Public HTTPS URL)
+
+Your complete codebase has been pushed to GitHub:  
+**Repository:** [https://github.com/sreyaskrishna87/daymark-qr-attendance](https://github.com/sreyaskrishna87/daymark-qr-attendance)
+
+### Option 1: Deploy to Render (Recommended — 100% Free)
+1. Click the button above or open: **[Render Blueprint Deploy](https://dashboard.render.com/blueprints/new?repo=https://github.com/sreyaskrishna87/daymark-qr-attendance)**
+2. Sign in with GitHub (`sreyaskrishna87`).
+3. Click **Apply Blueprint** (Render automatically reads `render.yaml`, installs dependencies, configures environment variables, and launches the app).
+4. In ~60 seconds, you get a live public HTTPS URL:  
+   `https://daymark-qr-attendance.onrender.com`
+
+### Option 2: Deploy to Railway
+1. Open [railway.app](https://railway.app) and click **New Project** → **Deploy from GitHub repo**.
+2. Select `sreyaskrishna87/daymark-qr-attendance`.
+3. Railway automatically detects `railway.json` and spins up the live container with a free `.up.railway.app` HTTPS domain.
+
 ---
 
 ## 1. Static Preview Hosting (Client-Only Demo)

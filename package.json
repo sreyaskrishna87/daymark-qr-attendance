@@ -1,0 +1,26 @@
+{
+  "name": "daymark-qr-attendance",
+  "version": "2.0.0",
+  "description": "Real-time office QR attendance system with server-signed rotating challenges, worker token authentication, and GPS proximity verification.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "qr-attendance",
+    "sqlite",
+    "express",
+    "anti-fraud",
+    "geofencing"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "sqlite3": "^5.1.7"
+  }
+}

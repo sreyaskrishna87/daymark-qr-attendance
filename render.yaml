@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: daymark-qr-attendance
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: OFFICE_ID
+        value: OFFICE-HQ
+      - key: QR_INTERVAL_SEC
+        value: "25"

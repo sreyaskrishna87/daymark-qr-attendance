@@ -86,7 +86,8 @@ app.get('/api/settings', async (req, res) => {
       officeLat: null,
       officeLng: null,
       geofenceRadius: 150,
-      strictGps: false
+      strictGps: true,
+      qrMode: 'fixed' // 'fixed' (printable poster) or 'rotating' (screen)
     };
     for (const r of rows) {
       if (r.key === 'officeName') settings.officeName = r.value;
@@ -94,6 +95,7 @@ app.get('/api/settings', async (req, res) => {
       if (r.key === 'officeLng') settings.officeLng = r.value ? parseFloat(r.value) : null;
       if (r.key === 'geofenceRadius') settings.geofenceRadius = parseInt(r.value, 10) || 150;
       if (r.key === 'strictGps') settings.strictGps = r.value === '1';
+      if (r.key === 'qrMode') settings.qrMode = r.value;
     }
     res.json(settings);
   } catch (err) {
@@ -103,7 +105,7 @@ app.get('/api/settings', async (req, res) => {
 
 app.post('/api/settings', async (req, res) => {
   try {
-    const { officeName, officeLat, officeLng, geofenceRadius, strictGps } = req.body;
+    const { officeName, officeLat, officeLng, geofenceRadius, strictGps, qrMode } = req.body;
     if (officeName !== undefined) {
       await db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['officeName', String(officeName)]);
     }
@@ -119,13 +121,34 @@ app.post('/api/settings', async (req, res) => {
     if (strictGps !== undefined) {
       await db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['strictGps', strictGps ? '1' : '0']);
     }
+    if (qrMode !== undefined) {
+      await db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['qrMode', String(qrMode)]);
+    }
     res.json({ success: true, message: 'Settings saved' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 3. Office QR code endpoint
+// 3. Fixed Printed Office QR endpoint
+app.get('/api/office/static-qr', async (req, res) => {
+  try {
+    const raw = `DAYMARK|STATIC|${OFFICE_ID}`;
+    const signature = crypto.createHmac('sha256', SECRET_KEY).update(raw).digest('hex').slice(0, 16);
+    const code = `${raw}|${signature}`;
+    const row = await db.get('SELECT value FROM settings WHERE key = ?', ['officeName']);
+    res.json({
+      code,
+      officeId: OFFICE_ID,
+      officeName: row ? row.value : 'Main Office',
+      type: 'fixed-print'
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 4. Rotating Office QR code endpoint
 app.get('/api/office/qr', (req, res) => {
   res.json(generateOfficeQR());
 });
@@ -281,44 +304,76 @@ app.post('/api/attendance/scan', async (req, res) => {
     }
 
     const parts = qrCode.split('|');
-    // Format: DAYMARK|V2|officeId|bucket|expiresAt|nonce|signature
-    if (parts.length !== 7 || parts[0] !== 'DAYMARK' || parts[1] !== 'V2') {
-      return res.status(400).json({
-        error: 'Unrecognized QR code. Please scan the official Daymark office QR screen.'
-      });
-    }
-
-    const [header, version, scannedOfficeId, bucket, expiresAtStr, nonce, signature] = parts;
-    const expiresAt = parseInt(expiresAtStr, 10);
     const now = Date.now();
+    let isStaticPoster = false;
 
-    // C. Cryptographic Signature Verification
-    const expectedPayload = `DAYMARK|V2|${scannedOfficeId}|${bucket}|${expiresAt}|${nonce}`;
-    const expectedSignature = crypto.createHmac('sha256', SECRET_KEY).update(expectedPayload).digest('hex').slice(0, 16);
+    if (parts[0] === 'DAYMARK' && parts[1] === 'STATIC') {
+      // Fixed print format: DAYMARK|STATIC|officeId|signature
+      if (parts.length < 4) {
+        return res.status(400).json({ error: 'Invalid printed QR format' });
+      }
+      const [, , scannedOfficeId, signature] = parts;
+      const expectedPayload = `DAYMARK|STATIC|${scannedOfficeId}`;
+      const expectedSignature = crypto.createHmac('sha256', SECRET_KEY).update(expectedPayload).digest('hex').slice(0, 16);
+      if (signature !== expectedSignature) {
+        return res.status(400).json({ error: 'Security alert: QR signature mismatch. Invalid or forged office poster.' });
+      }
+      isStaticPoster = true;
+    } else if (parts[0] === 'DAYMARK' && parts[1] === 'V2') {
+      // Rotating screen format: DAYMARK|V2|officeId|bucket|expiresAt|nonce|signature
+      if (parts.length !== 7) {
+        return res.status(400).json({
+          error: 'Unrecognized rotating QR code structure.'
+        });
+      }
 
-    if (signature !== expectedSignature) {
+      const [, , scannedOfficeId, bucket, expiresAtStr, nonce, signature] = parts;
+      const expiresAt = parseInt(expiresAtStr, 10);
+
+      // Cryptographic Signature Verification
+      const expectedPayload = `DAYMARK|V2|${scannedOfficeId}|${bucket}|${expiresAt}|${nonce}`;
+      const expectedSignature = crypto.createHmac('sha256', SECRET_KEY).update(expectedPayload).digest('hex').slice(0, 16);
+
+      if (signature !== expectedSignature) {
+        return res.status(400).json({
+          error: 'Security alert: QR signature check failed. Forged or corrupted QR code.'
+        });
+      }
+
+      // Expiration Check (25s window + 6s clock drift grace)
+      if (now > expiresAt + 6000) {
+        return res.status(400).json({
+          error: 'This QR code has expired. Please scan the current rotating code on the office screen.'
+        });
+      }
+
+      // Anti-Replay: Check if Nonce was already used
+      const existingUse = await db.get('SELECT nonce, worker_id, scanned_at FROM used_challenges WHERE nonce = ?', [nonce]);
+      if (existingUse) {
+        return res.status(400).json({
+          error: 'Security alert: This QR challenge was already scanned. Replay scans are blocked. Please scan the fresh rotating code.'
+        });
+      }
+
+      // Record nonce immediately to prevent concurrency replay
+      await db.run('INSERT INTO used_challenges (nonce, worker_id, scanned_at) VALUES (?, ?, ?)', [nonce, worker.id, now]);
+    } else {
       return res.status(400).json({
-        error: 'Security alert: QR signature check failed. Forged or corrupted QR code.'
+        error: 'Unrecognized QR code. Please scan the official Daymark office QR poster or screen.'
       });
     }
 
-    // D. Expiration Check (25s window + 6s clock drift grace)
-    if (now > expiresAt + 6000) {
+    // Cooldown check: prevent accidental rapid double-scans within 45 seconds
+    const recentScan = await db.get(
+      'SELECT time FROM attendance_events WHERE worker_id = ? ORDER BY time DESC LIMIT 1',
+      [worker.id]
+    );
+    if (recentScan && (now - recentScan.time) < 45000) {
+      const waitSec = Math.ceil((45000 - (now - recentScan.time)) / 1000);
       return res.status(400).json({
-        error: 'This QR code has expired. Please scan the current rotating code on the office screen.'
+        error: `Attendance already recorded! Please wait ${waitSec}s before scanning again.`
       });
     }
-
-    // E. Anti-Replay: Check if Nonce was already used
-    const existingUse = await db.get('SELECT nonce, worker_id, scanned_at FROM used_challenges WHERE nonce = ?', [nonce]);
-    if (existingUse) {
-      return res.status(400).json({
-        error: 'Security alert: This QR challenge was already scanned. Replay scans are blocked. Please scan the fresh rotating code.'
-      });
-    }
-
-    // Record nonce immediately to prevent concurrency replay
-    await db.run('INSERT INTO used_challenges (nonce, worker_id, scanned_at) VALUES (?, ?, ?)', [nonce, worker.id, now]);
 
     // F. Geofence & Proximity Verification
     const settingsRows = await db.all('SELECT key, value FROM settings');
@@ -328,7 +383,8 @@ app.post('/api/attendance/scan', async (req, res) => {
     const officeLat = settings.officeLat ? parseFloat(settings.officeLat) : null;
     const officeLng = settings.officeLng ? parseFloat(settings.officeLng) : null;
     const radius = settings.geofenceRadius ? parseInt(settings.geofenceRadius, 10) : 150;
-    const strictGps = settings.strictGps === '1';
+    // For static printed poster, location check is strict by default to prevent off-site scans
+    const strictGps = isStaticPoster || settings.strictGps === '1';
 
     let distanceMeters = null;
     let scanStatus = 'verified';
@@ -341,7 +397,7 @@ app.post('/api/attendance/scan', async (req, res) => {
         if (distanceMeters > radius + accuracy) {
           if (strictGps) {
             return res.status(400).json({
-              error: `Location check failed: You are approximately ${distanceMeters}m away from the office (allowed: ${radius}m). Physical presence is required.`
+              error: `Location check failed: You are approximately ${distanceMeters}m away from the office poster (allowed: ${radius}m). Physical presence is required.`
             });
           } else {
             scanStatus = 'flagged_distance';
@@ -350,7 +406,7 @@ app.post('/api/attendance/scan', async (req, res) => {
       } else {
         if (strictGps) {
           return res.status(400).json({
-            error: 'Office requires location permission to verify physical presence. Please allow GPS and try again.'
+            error: 'Office poster scan requires GPS location permission to verify that you are physically present. Please allow location access in your browser and try again.'
           });
         }
         scanStatus = 'location_omitted';
@@ -410,6 +466,11 @@ app.post('/api/attendance/scan', async (req, res) => {
 // Serve static frontend files from current directory
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.static(__dirname));
+
+// Dedicated printable poster route
+app.get('/poster', (req, res) => {
+  res.sendFile(path.join(__dirname, 'poster.html'));
+});
 
 // Dedicated full-screen kiosk view route
 app.get('/kiosk', (req, res) => {

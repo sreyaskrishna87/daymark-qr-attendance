@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daymark — Printable Office Attendance Poster</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+:root {
+  --ink: #111a14;
+  --muted: #566459;
+  --line: #dbe3dc;
+  --green: #2a633a;
+  --pale: #edf5ef;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #f0f2ed;
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+}
+.no-print-bar {
+  width: 100%;
+  max-width: 680px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.btn {
+  background: var(--green);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.btn.secondary {
+  background: #eef2ec;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* Printable Poster Sheet (A4 / Letter styled) */
+.sheet {
+  width: 100%;
+  max-width: 650px;
+  background: #ffffff;
+  border: 2px solid #1e3825;
+  border-radius: 20px;
+  padding: 44px 40px;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.1);
+  position: relative;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font: 800 24px 'Manrope', sans-serif;
+  letter-spacing: -0.5px;
+  color: var(--green);
+  margin-bottom: 6px;
+}
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  background: var(--green);
+  color: #fff;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+}
+.office-title {
+  font: 800 28px 'Manrope', sans-serif;
+  letter-spacing: -0.5px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  color: #111a14;
+}
+.office-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+.qr-frame {
+  width: 310px;
+  height: 310px;
+  margin: 0 auto 24px;
+  background: #ffffff;
+  border: 4px solid #1e3825;
+  border-radius: 22px;
+  padding: 16px;
+  display: grid;
+  place-items: center;
+}
+.qr-frame canvas, .qr-frame img {
+  width: 270px !important;
+  height: 270px !important;
+}
+.badge-fixed {
+  display: inline-block;
+  background: #edf5ef;
+  color: var(--green);
+  border: 1px solid #c2dec6;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 99px;
+  margin-bottom: 22px;
+}
+.instructions {
+  background: #fafbf9;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px 24px;
+  text-align: left;
+  margin-top: 10px;
+}
+.instructions h3 {
+  font: 700 14px 'Manrope', sans-serif;
+  margin-bottom: 12px;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.steps {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #29362c;
+}
+.steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.step-num {
+  width: 22px;
+  height: 22px;
+  background: var(--green);
+  color: #fff;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 11px;
+  flex: none;
+  margin-top: 1px;
+}
+.footer-note {
+  margin-top: 24px;
+  font-size: 11px;
+  color: var(--muted);
+  border-top: 1px dashed var(--line);
+  padding-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    padding: 0 !important;
+  }
+  .no-print-bar {
+    display: none !important;
+  }
+  .sheet {
+    max-width: 100% !important;
+    border: 3px solid #000000 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 30px !important;
+    page-break-inside: avoid;
+  }
+  .qr-frame {
+    border-color: #000000 !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="no-print-bar">
+  <div>
+    <strong>Printable Attendance Poster</strong>
+    <div style="font-size:12px;color:var(--muted)">Print and stick this QR poster at your office entrance or door.</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a href="/" class="btn secondary">Back to Dashboard</a>
+    <button class="btn" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print Poster
+    </button>
+  </div>
+</div>
+
+<div class="sheet">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+    </div>
+    daymark
+  </div>
+
+  <h1 class="office-title" id="officeName">Office Attendance Check-in</h1>
+  <p class="office-subtitle">Scan this official code on arrival and departure</p>
+
+  <div class="badge-fixed">Verified Office Location QR</div>
+
+  <div class="qr-frame" id="qrContainer">
+    <div style="color:var(--muted);font-size:12px">Generating high-res QR…</div>
+  </div>
+
+  <div class="instructions">
+    <h3>How to Record Attendance:</h3>
+    <ol class="steps">
+      <li>
+        <span class="step-num">1</span>
+        <div>Open your <strong>Daymark personal check-in link</strong> on your smartphone.</div>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <div>Tap <strong>"Start Camera Scanner"</strong> and point your camera at this poster.</div>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <div>Your arrival or departure is verified with office GPS proximity and saved instantly.</div>
+      </li>
+    </ol>
+  </div>
+
+  <div class="footer-note">
+    <span>🛡️ GPS Geofence Protected</span>
+    <span id="officeIdLabel">Office ID: OFFICE-HQ</span>
+    <span>Daymark Attendance System</span>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(()=>{
+  async function loadPoster() {
+    try {
+      const res = await fetch('/api/office/static-qr');
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      
+      if (data.officeName) {
+        document.getElementById('officeName').textContent = data.officeName;
+      }
+      if (data.officeId) {
+        document.getElementById('officeIdLabel').textContent = 'Office ID: ' + data.officeId;
+      }
+
+      const qrBox = document.getElementById('qrContainer');
+      qrBox.innerHTML = '';
+      new QRCode(qrBox, {
+        text: data.code,
+        width: 270,
+        height: 270,
+        colorDark: '#0b160f',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    } catch (err) {
+      console.error('Error loading static QR:', err);
+      // Fallback
+      const qrBox = document.getElementById('qrContainer');
+      qrBox.innerHTML = '';
+      new QRCode(qrBox, {
+        text: 'DAYMARK|STATIC|OFFICE-HQ',
+        width: 270,
+        height: 270
+      });
+    }
+  }
+
+  loadPoster();
+})();
+</script>
+</body>
+</html>

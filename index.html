@@ -164,9 +164,13 @@ aside{display:grid;gap:14px}
         <p class="lede">Workers scan the rotating office QR from their phones. Scans sync centrally across devices.</p>
       </div>
       <div class="top-actions">
+        <a href="/poster" target="_blank" class="btn" style="background:#234e2c;color:#fff;border-color:#234e2c;font-weight:700" title="Open print-ready poster for office door/wall">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print QR Poster
+        </a>
         <button class="btn" id="showQR">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></svg>
-          Office QR
+          View QR Codes
         </button>
         <button class="btn" id="showSettings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -329,18 +333,42 @@ aside{display:grid;gap:14px}
 
 <!-- Modal: Live Office QR -->
 <dialog class="modal" id="qrDialog">
-  <div class="mhead">Live Office QR Display<button type="button" class="x" data-close>×</button></div>
+  <div class="mhead">Office QR Code Options<button type="button" class="x" data-close>×</button></div>
   <div class="mbody qr-wrap">
-    <div class="psub">Server-signed challenge rotates every 25 seconds to eliminate fake scans.</div>
-    <div class="qrbox" id="qrbox">
-      <div class="qr-fallback">Loading QR generator…</div>
+    <div style="display:flex;gap:6px;background:#eef2ec;padding:4px;border-radius:10px;margin-bottom:16px">
+      <button type="button" id="tabFixedBtn" class="btn primary" style="flex:1;justify-content:center;padding:7px;font-size:11px">Fixed Printed Poster</button>
+      <button type="button" id="tabRotatingBtn" class="btn" style="flex:1;justify-content:center;padding:7px;font-size:11px;background:transparent;border-color:transparent">Rotating Screen</button>
     </div>
-    <div class="timer" id="qrTimer">00:25</div>
-    <div class="qr-caption">Display this screen at your office entrance, or launch the dedicated kiosk display for a tablet/monitor.</div>
-    <div id="qrCodeText" class="code"></div>
+
+    <!-- Fixed Print Tab -->
+    <div id="fixedTab">
+      <div class="psub">Permanent printable QR for your office wall or door. Protected by GPS geofencing.</div>
+      <div class="qrbox" id="fixedQrBox"><div class="qr-fallback">Loading Poster QR…</div></div>
+      <div class="qr-caption">Print this once and tape it to your entrance door or front desk. Workers must be physically at the office to scan.</div>
+      <div id="fixedQrText" class="code"></div>
+      <div style="margin-top:14px">
+        <a href="/poster" target="_blank" class="btn primary" style="width:100%;justify-content:center">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Open High-Res Printable Poster (A4)
+        </a>
+      </div>
+    </div>
+
+    <!-- Rotating Screen Tab -->
+    <div id="rotatingTab" class="hidden">
+      <div class="psub">Changes every 25 seconds for tablets or mounted displays.</div>
+      <div class="qrbox" id="qrbox"><div class="qr-fallback">Loading QR generator…</div></div>
+      <div class="timer" id="qrTimer">00:25</div>
+      <div class="qr-caption">For offices with a dedicated tablet/monitor screen at the entrance.</div>
+      <div id="qrCodeText" class="code"></div>
+      <div style="margin-top:14px">
+        <a href="/kiosk" target="_blank" class="btn" style="width:100%;justify-content:center">
+          Launch Fullscreen Kiosk
+        </a>
+      </div>
+    </div>
   </div>
-  <div class="mfoot" style="justify-content:space-between">
-    <a href="/kiosk" target="_blank" class="btn">Launch Fullscreen Kiosk</a>
+  <div class="mfoot">
     <button type="button" class="btn" data-close>Close</button>
   </div>
 </dialog>
@@ -364,8 +392,13 @@ aside{display:grid;gap:14px}
   <form id="settingsForm">
     <div class="mhead">Office Location & Geofence<button type="button" class="x" data-close>×</button></div>
     <div class="mbody">
-      <p class="lede" style="margin-bottom:14px">Set the physical location of your office to prevent workers from scanning outside office premises.</p>
+      <p class="lede" style="margin-bottom:14px">Set your office physical location so attendance can only be scanned when physically present at the office.</p>
       
+      <label class="field">
+        Office / Business Name (shown on printed poster)
+        <input id="setName" placeholder="e.g. Main Office / Warehouse" maxlength="60">
+      </label>
+
       <button type="button" class="btn" id="detectLocationBtn" style="margin-bottom:12px;width:100%;justify-content:center">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
         Detect My Current Location as Office
@@ -379,12 +412,21 @@ aside{display:grid;gap:14px}
       <label class="field">
         Allowed Geofence Radius (meters)
         <input id="setRadius" type="number" value="150" min="20" max="5000">
-        <small>Workers scanning farther than this distance from office coordinates will be flagged or rejected.</small>
+        <small>Workers scanning farther than this distance from office coordinates will be blocked.</small>
+      </label>
+
+      <label class="field">
+        Default QR Mode
+        <select id="setQrMode">
+          <option value="fixed">Fixed Printed Poster on Wall (Paper/Sticker)</option>
+          <option value="rotating">Live Rotating Screen (Tablet/Monitor)</option>
+        </select>
+        <small>In fixed poster mode, GPS verification ensures workers cannot scan pictures from home.</small>
       </label>
 
       <label class="field" style="display:flex;align-items:center;gap:10px;margin-top:10px">
-        <input id="setStrict" type="checkbox" style="width:auto;margin:0">
-        <span>Strict Enforcement (Reject scans outside geofence)</span>
+        <input id="setStrict" type="checkbox" checked style="width:auto;margin:0">
+        <span>Strict GPS Enforcement (Reject scans outside geofence)</span>
       </label>
     </div>
     <div class="mfoot">
@@ -621,8 +663,53 @@ aside{display:grid;gap:14px}
   }
 
   // --- Office QR Modal Generation ---
+  let fixedQrGenerated = false;
+  async function loadFixedQr() {
+    if (fixedQrGenerated) return;
+    try {
+      const res = await fetch('/api/office/static-qr');
+      if (res.ok) {
+        const d = await res.json();
+        $('fixedQrText').textContent = d.code;
+        const box = $('fixedQrBox');
+        box.innerHTML = '';
+        if (window.QRCode) {
+          new QRCode(box, {
+            text: d.code,
+            width: 210,
+            height: 210,
+            colorDark: '#122416',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+          });
+          fixedQrGenerated = true;
+        }
+      }
+    } catch {}
+  }
+
+  $('tabFixedBtn').onclick = () => {
+    $('tabFixedBtn').className = 'btn primary';
+    $('tabFixedBtn').style.background = 'var(--green)';
+    $('tabRotatingBtn').className = 'btn';
+    $('tabRotatingBtn').style.background = 'transparent';
+    $('fixedTab').classList.remove('hidden');
+    $('rotatingTab').classList.add('hidden');
+    loadFixedQr();
+  };
+
+  $('tabRotatingBtn').onclick = () => {
+    $('tabRotatingBtn').className = 'btn primary';
+    $('tabRotatingBtn').style.background = 'var(--green)';
+    $('tabFixedBtn').className = 'btn';
+    $('tabFixedBtn').style.background = 'transparent';
+    $('rotatingTab').classList.remove('hidden');
+    $('fixedTab').classList.add('hidden');
+    updateOfficeQR();
+  };
+
   async function updateOfficeQR() {
-    if (!$('qrDialog').open) return;
+    if (!$('qrDialog').open || $('rotatingTab').classList.contains('hidden')) return;
 
     if (isBackendLive) {
       try {
@@ -764,7 +851,7 @@ aside{display:grid;gap:14px}
   // Office QR Modal triggers
   $('showQR').onclick = () => {
     $('qrDialog').showModal();
-    updateOfficeQR();
+    loadFixedQr();
   };
   setInterval(updateOfficeQR, 1000);
 
@@ -854,10 +941,12 @@ aside{display:grid;gap:14px}
       const res = await fetch('/api/settings');
       if (res.ok) {
         const s = await res.json();
+        $('setName').value = s.officeName || 'Main Office';
         $('setLat').value = s.officeLat != null ? s.officeLat : '';
         $('setLng').value = s.officeLng != null ? s.officeLng : '';
         $('setRadius').value = s.geofenceRadius || 150;
-        $('setStrict').checked = !!s.strictGps;
+        $('setQrMode').value = s.qrMode || 'fixed';
+        $('setStrict').checked = s.strictGps !== false;
       }
       $('settingsDialog').showModal();
     } catch (err) {
@@ -879,18 +968,28 @@ aside{display:grid;gap:14px}
 
   $('settingsForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const officeName = $('setName').value.trim() || 'Main Office';
     const officeLat = $('setLat').value ? parseFloat($('setLat').value) : null;
     const officeLng = $('setLng').value ? parseFloat($('setLng').value) : null;
     const geofenceRadius = parseInt($('setRadius').value, 10) || 150;
+    const qrMode = $('setQrMode').value;
     const strictGps = $('setStrict').checked;
 
     try {
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ officeLat, officeLng, geofenceRadius, strictGps })
+        body: JSON.stringify({ officeName, officeLat, officeLng, geofenceRadius, strictGps, qrMode })
       });
       if (res.ok) {
+        $('settingsDialog').close();
+        toast('Office geofence settings saved!');
+        fixedQrGenerated = false;
+      }
+    } catch (err) {
+      toast('Error saving settings: ' + err.message);
+    }
+  });
         $('settingsDialog').close();
         toast('Office geofence settings saved!');
       }

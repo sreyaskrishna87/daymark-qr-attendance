@@ -1,5 +1,4 @@
 const http = require('node:http');
-const path = require('node:path');
 
 // Helper to make HTTP requests
 function request(options, body = null) {
@@ -56,16 +55,33 @@ async function runTests() {
   console.log('Worker profile:', me.data);
   if (me.data.worker.name !== 'Priya Sharma') throw new Error('Worker profile mismatch');
 
-  // 4. Get Live Signed Office QR
-  console.log('\n4. Testing GET /api/office/qr...');
-  const qrRes = await request({ host: 'localhost', port: 3000, path: '/api/office/qr', method: 'GET' });
-  console.log('Office QR:', qrRes.data);
-  const scannedQrCode = qrRes.data.code;
-  if (!scannedQrCode.startsWith('DAYMARK|V2|')) throw new Error('Invalid QR payload format');
+  // 4. Test Fixed Printed Poster QR
+  console.log('\n4. Testing GET /api/office/static-qr (Fixed Printable Poster)...');
+  const staticQrRes = await request({ host: 'localhost', port: 3000, path: '/api/office/static-qr', method: 'GET' });
+  console.log('Static Poster QR:', staticQrRes.data);
+  const posterCode = staticQrRes.data.code;
+  if (!posterCode.startsWith('DAYMARK|STATIC|')) throw new Error('Invalid Static QR format');
 
-  // 5. Submit Scan (Check-in)
-  console.log('\n5. Testing POST /api/attendance/scan (Arrival Check-in)...');
-  const scan1 = await request({
+  // Configure Office Location (Bangalore HQ: 12.9716, 77.5946, 150m radius)
+  console.log('\n4b. Setting Office Geofence Coordinates in /api/settings...');
+  await request({
+    host: 'localhost',
+    port: 3000,
+    path: '/api/settings',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  }, {
+    officeName: 'Bangalore HQ Entrance',
+    officeLat: 12.9716,
+    officeLng: 77.5946,
+    geofenceRadius: 150,
+    strictGps: true,
+    qrMode: 'fixed'
+  });
+
+  // 5. Submit Scan on Static Printed Poster (Within Geofence: 15m away)
+  console.log('\n5. Testing scan on fixed poster WITHIN geofence...');
+  const scanPosterGood = await request({
     host: 'localhost',
     port: 3000,
     path: '/api/attendance/scan',
@@ -73,30 +89,39 @@ async function runTests() {
     headers: { 'Content-Type': 'application/json' }
   }, {
     token: workerToken,
-    qrCode: scannedQrCode,
-    location: { latitude: 12.9716, longitude: 77.5946, accuracy: 10 }
+    qrCode: posterCode,
+    location: { latitude: 12.9717, longitude: 77.5947, accuracy: 15 } // ~15m from office
   });
-  console.log('Scan 1 result:', scan1.data);
-  if (!scan1.data.success || scan1.data.kind !== 'in') throw new Error('Scan 1 check-in failed');
+  console.log('Scan good result:', scanPosterGood.data);
+  if (!scanPosterGood.data.success || scanPosterGood.data.kind !== 'in') throw new Error('Poster check-in failed');
 
-  // 6. Test Anti-Replay: same QR scan again
-  console.log('\n6. Testing Anti-Replay: scanning used QR challenge again...');
-  const replay = await request({
+  // 6. Test Worker 2 scanning from home (5 km away) -> MUST BE REJECTED
+  console.log('\n6. Testing Worker 2 scanning fixed poster FROM HOME (5 km away)...');
+  const worker2 = await request({
+    host: 'localhost',
+    port: 3000,
+    path: '/api/workers',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  }, { name: 'Rahul Verma', role: 'Support' });
+  const worker2Token = worker2.data.token;
+
+  const scanPosterFar = await request({
     host: 'localhost',
     port: 3000,
     path: '/api/attendance/scan',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
   }, {
-    token: workerToken,
-    qrCode: scannedQrCode,
-    location: { latitude: 12.9716, longitude: 77.5946, accuracy: 10 }
+    token: worker2Token,
+    qrCode: posterCode,
+    location: { latitude: 13.0300, longitude: 77.6200, accuracy: 20 } // ~7 km away
   });
-  console.log('Replay status:', replay.status, replay.data);
-  if (replay.status !== 400 || !replay.data.error.includes('already scanned')) {
-    throw new Error('Anti-replay test failed: expected 400 with replay error');
+  console.log('Remote scan result (status):', scanPosterFar.status, scanPosterFar.data);
+  if (scanPosterFar.status !== 400 || !scanPosterFar.data.error.includes('Location check failed')) {
+    throw new Error('Expected remote scan to be rejected by geofence!');
   }
-  console.log('Anti-replay blocked successfully! (Expected behavior)');
+  console.log('Remote scan blocked by GPS geofence successfully! (Expected behavior)');
 
   // 7. Check Dashboard sync
   console.log('\n7. Testing GET /api/dashboard...');
@@ -105,7 +130,7 @@ async function runTests() {
   console.log('Recent scans count:', dash.data.recent.length);
   if (dash.data.stats.checkedIn < 1) throw new Error('Dashboard stats did not update');
 
-  console.log('\n>>> ALL 4 REQUIREMENTS VERIFIED AND WORKING PROPERLY. <<<');
+  console.log('\n>>> ALL REQUIREMENTS (FIXED PRINTABLE QR + GEOFENCE SECURITY) VERIFIED! <<<');
 }
 
 // Start server if needed or test running server
@@ -126,4 +151,3 @@ main().catch(err => {
   console.error('Test suite failed:', err);
   process.exit(1);
 });
-

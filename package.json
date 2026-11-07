@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test.js"
+    "test": "node test.js",
+    "build": "node scripts/build.mjs",
+    "deploy:cloud": "node scripts/deploy-cloudflare.mjs"
   },
   "keywords": [
     "qr-attendance",

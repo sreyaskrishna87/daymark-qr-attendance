@@ -128,6 +128,7 @@ aside{display:grid;gap:14px}
 @media(max-width:850px){.shell{padding:0 18px 35px}.layout{grid-template-columns:1fr}}
 @media(max-width:650px){
   header{height:62px}.topline{display:block}.top-actions{margin-top:14px}
+  .head-right{gap:6px}.head-right .status-pill{display:none}.head-right .btn{padding:7px 8px;font-size:10px}
   .stats{grid-template-columns:1fr;gap:8px}.stat{padding:12px}
   .worker{grid-template-columns:minmax(0,1fr) 75px 85px}
 }
@@ -152,6 +153,7 @@ aside{display:grid;gap:14px}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         Kiosk
       </a>
+      <button class="btn" id="managerSignIn" type="button">Manager sign-in</button>
       <span class="avatar">HQ</span>
     </div>
   </header>
@@ -164,7 +166,7 @@ aside{display:grid;gap:14px}
         <p class="lede">Workers scan the rotating office QR from their phones. Scans sync centrally across devices.</p>
       </div>
       <div class="top-actions">
-        <a href="/poster" target="_blank" class="btn" style="background:#234e2c;color:#fff;border-color:#234e2c;font-weight:700" title="Open print-ready poster for office door/wall">
+        <a href="/poster" target="_blank" class="btn" style="background:#234e2c;color:#fff;border-color:#234e2c;font-weight:700" title="Open the office QR poster for printing">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           Print QR Poster
         </a>
@@ -241,7 +243,7 @@ aside{display:grid;gap:14px}
             <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span>
             <div>
               <div class="ftitle">HMAC Signed QR Challenge</div>
-              <div class="fdesc">Server issues signed QR expiring every 25 seconds. Screenshots and printouts expire automatically.</div>
+              <div class="fdesc">The poster has a server signature. Production scans require a worker link and an in-office GPS reading; copies remain usable and GPS can be spoofed.</div>
             </div>
           </div>
           <div class="feature">
@@ -259,7 +261,7 @@ aside{display:grid;gap:14px}
             </div>
           </div>
           <div class="locknote">
-            Centralized SQLite synchronization ensures that check-ins from any worker phone immediately appear on the manager's live monitor.
+            Check-ins sync centrally. GPS can be spoofed, so the geofence is a useful signal rather than proof of presence.
           </div>
         </div>
 
@@ -336,27 +338,27 @@ aside{display:grid;gap:14px}
   <div class="mhead">Office QR Code Options<button type="button" class="x" data-close>×</button></div>
   <div class="mbody qr-wrap">
     <div style="display:flex;gap:6px;background:#eef2ec;padding:4px;border-radius:10px;margin-bottom:16px">
-      <button type="button" id="tabFixedBtn" class="btn primary" style="flex:1;justify-content:center;padding:7px;font-size:11px">Fixed Printed Poster</button>
+      <button type="button" id="tabFixedBtn" class="btn primary" style="flex:1;justify-content:center;padding:7px;font-size:11px">Printed Poster</button>
       <button type="button" id="tabRotatingBtn" class="btn" style="flex:1;justify-content:center;padding:7px;font-size:11px;background:transparent;border-color:transparent">Rotating Screen</button>
     </div>
 
     <!-- Fixed Print Tab -->
     <div id="fixedTab">
-      <div class="psub">Permanent printable QR for your office wall or door. Protected by GPS geofencing.</div>
+      <div class="psub">Print this once and keep it at the office entrance. Each worker still needs their personal link and must pass the office GPS check.</div>
       <div class="qrbox" id="fixedQrBox"><div class="qr-fallback">Loading Poster QR…</div></div>
-      <div class="qr-caption">Print this once and tape it to your entrance door or front desk. Workers must be physically at the office to scan.</div>
+      <div class="qr-caption">A copied poster looks the same as the original. Scans reporting a location outside the geofence are rejected; GPS can be spoofed.</div>
       <div id="fixedQrText" class="code"></div>
       <div style="margin-top:14px">
         <a href="/poster" target="_blank" class="btn primary" style="width:100%;justify-content:center">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          Open High-Res Printable Poster (A4)
+          Open Printable Office Poster (A4)
         </a>
       </div>
     </div>
 
     <!-- Rotating Screen Tab -->
     <div id="rotatingTab" class="hidden">
-      <div class="psub">Changes every 25 seconds for tablets or mounted displays.</div>
+      <div class="psub">Server-signed code changes every 25 seconds for the office entrance screen.</div>
       <div class="qrbox" id="qrbox"><div class="qr-fallback">Loading QR generator…</div></div>
       <div class="timer" id="qrTimer">00:25</div>
       <div class="qr-caption">For offices with a dedicated tablet/monitor screen at the entrance.</div>
@@ -392,7 +394,7 @@ aside{display:grid;gap:14px}
   <form id="settingsForm">
     <div class="mhead">Office Location & Geofence<button type="button" class="x" data-close>×</button></div>
     <div class="mbody">
-      <p class="lede" style="margin-bottom:14px">Set your office physical location so attendance can only be scanned when physically present at the office.</p>
+      <p class="lede" style="margin-bottom:14px">Set the office location to check the phone’s reported distance. GPS can be spoofed, so this is a proximity signal rather than proof of presence.</p>
       
       <label class="field">
         Office / Business Name (shown on printed poster)
@@ -412,16 +414,16 @@ aside{display:grid;gap:14px}
       <label class="field">
         Allowed Geofence Radius (meters)
         <input id="setRadius" type="number" value="150" min="20" max="5000">
-        <small>Workers scanning farther than this distance from office coordinates will be blocked.</small>
+        <small>With strict enforcement enabled, scans reporting a location beyond this distance are rejected.</small>
       </label>
 
       <label class="field">
         Default QR Mode
         <select id="setQrMode">
-          <option value="fixed">Fixed Printed Poster on Wall (Paper/Sticker)</option>
-          <option value="rotating">Live Rotating Screen (Tablet/Monitor)</option>
+        <option value="fixed">Permanent Printed Poster (no screen required)</option>
+        <option value="rotating">Live Rotating Screen (optional)</option>
         </select>
-        <small>In fixed poster mode, GPS verification ensures workers cannot scan pictures from home.</small>
+        <small>The printed code can be copied. Strict GPS checks reject scans reporting a location outside this area, but GPS can be spoofed.</small>
       </label>
 
       <label class="field" style="display:flex;align-items:center;gap:10px;margin-top:10px">
@@ -446,6 +448,9 @@ aside{display:grid;gap:14px}
   const esc = s => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   
   let isBackendLive = false;
+  let adminAuthRequired = false;
+  let adminPromptDismissed = false;
+  let adminPassword = sessionStorage.getItem('daymark-manager-password') || '';
   let currentToken = '';
   let currentWorkerId = '';
   let media = null;
@@ -461,6 +466,35 @@ aside{display:grid;gap:14px}
     el.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+  }
+
+  async function adminFetch(url, options = {}, retried = false) {
+    if (!adminAuthRequired) return fetch(url, options);
+    if (!adminPassword) {
+      if (adminPromptDismissed) return new Response(null, { status: 401 });
+      const entered = window.prompt('Enter the manager password for this office:');
+      if (entered === null) {
+        adminPromptDismissed = true;
+        return new Response(null, { status: 401 });
+      }
+      adminPassword = entered;
+    }
+
+    const headers = new Headers(options.headers || {});
+    const encodedCredentials = Array.from(new TextEncoder().encode(`manager:${adminPassword}`), byte => String.fromCharCode(byte)).join('');
+    headers.set('Authorization', `Basic ${btoa(encodedCredentials)}`);
+    const response = await fetch(url, { ...options, headers });
+    if (response.status === 401) {
+      adminPassword = '';
+      sessionStorage.removeItem('daymark-manager-password');
+      if (!retried) return adminFetch(url, options, true);
+      adminPromptDismissed = true;
+      toast('Manager password was not accepted. Use Manager sign-in to try again.');
+    } else if (response.ok) {
+      sessionStorage.setItem('daymark-manager-password', adminPassword);
+      adminPromptDismissed = false;
+    }
+    return response;
   }
 
   function fmtTime(timestamp) {
@@ -481,6 +515,7 @@ aside{display:grid;gap:14px}
         const data = await res.json();
         if (data.mode === 'backend-connected') {
           isBackendLive = true;
+          adminAuthRequired = data.adminAuthRequired === true;
           $('serverBadge').className = 'status-pill live';
           $('serverBadgeText').textContent = 'Live SQLite Backend';
           $('bannerEl').className = 'banner live';
@@ -550,7 +585,7 @@ aside{display:grid;gap:14px}
 
     if (isBackendLive) {
       try {
-        const res = await fetch('/api/dashboard');
+        const res = await adminFetch('/api/dashboard');
         if (!res.ok) return;
         const data = await res.json();
 
@@ -668,6 +703,10 @@ aside{display:grid;gap:14px}
     if (fixedQrGenerated) return;
     try {
       const res = await fetch('/api/office/static-qr');
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || 'Permanent QR is unavailable in production.');
+      }
       if (res.ok) {
         const d = await res.json();
         $('fixedQrText').textContent = d.code;
@@ -685,7 +724,10 @@ aside{display:grid;gap:14px}
           fixedQrGenerated = true;
         }
       }
-    } catch {}
+    } catch (err) {
+      $('fixedQrText').textContent = err.message;
+      $('fixedQrBox').innerHTML = '<div class="qr-fallback">Could not load the office poster QR. Refresh this page or check the server connection.</div>';
+    }
   }
 
   $('tabFixedBtn').onclick = () => {
@@ -867,7 +909,7 @@ aside{display:grid;gap:14px}
 
     if (isBackendLive) {
       try {
-        const res = await fetch('/api/workers', {
+        const res = await adminFetch('/api/workers', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, role })
@@ -931,6 +973,13 @@ aside{display:grid;gap:14px}
   // Search input
   $('search').addEventListener('input', refreshDashboard);
 
+  $('managerSignIn').onclick = () => {
+    adminPromptDismissed = false;
+    adminPassword = '';
+    sessionStorage.removeItem('daymark-manager-password');
+    refreshDashboard();
+  };
+
   // Office Settings Modal
   $('showSettings').onclick = async () => {
     if (!isBackendLive) {
@@ -938,7 +987,7 @@ aside{display:grid;gap:14px}
       return;
     }
     try {
-      const res = await fetch('/api/settings');
+      const res = await adminFetch('/api/settings');
       if (res.ok) {
         const s = await res.json();
         $('setName').value = s.officeName || 'Main Office';
@@ -976,7 +1025,7 @@ aside{display:grid;gap:14px}
     const strictGps = $('setStrict').checked;
 
     try {
-      const res = await fetch('/api/settings', {
+      const res = await adminFetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ officeName, officeLat, officeLng, geofenceRadius, strictGps, qrMode })

@@ -2,18 +2,57 @@ require('dotenv').config();
 const path = require('node:path');
 const crypto = require('node:crypto');
 const express = require('express');
-const cors = require('cors');
 const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SECRET_KEY = process.env.SECRET_KEY || 'daymark-secret-attendance-key-2026';
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const SECRET_KEY = process.env.SECRET_KEY || (NODE_ENV === 'production' ? '' : 'local-only-development-key');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const OFFICE_ID = process.env.OFFICE_ID || 'OFFICE-A';
 const QR_INTERVAL_SEC = parseInt(process.env.QR_INTERVAL_SEC, 10) || 25;
 
-app.use(cors());
+if (NODE_ENV === 'production' && !SECRET_KEY) {
+  console.error('SECRET_KEY must be configured in production.');
+  process.exit(1);
+}
+if (NODE_ENV === 'production' && !ADMIN_PASSWORD) {
+  console.error('ADMIN_PASSWORD must be configured in production.');
+  process.exit(1);
+}
+
+app.disable('x-powered-by');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+function requireAdmin(req, res, next) {
+  if (NODE_ENV !== 'production') return next();
+
+  const auth = req.get('authorization') || '';
+  const match = auth.match(/^Basic\s+(.+)$/i);
+  if (!match) {
+    res.set('WWW-Authenticate', 'Basic realm="Daymark manager", charset="UTF-8"');
+    return res.status(401).json({ error: 'Manager sign-in required' });
+  }
+
+  let supplied;
+  try {
+    const decoded = Buffer.from(match[1], 'base64').toString('utf8');
+    const separator = decoded.indexOf(':');
+    if (separator < 0 || decoded.slice(0, separator) !== 'manager') {
+      return res.status(401).json({ error: 'Invalid manager credentials' });
+    }
+    supplied = Buffer.from(decoded.slice(separator + 1));
+  } catch {
+    return res.status(401).json({ error: 'Invalid manager credentials' });
+  }
+
+  const expected = Buffer.from(ADMIN_PASSWORD);
+  if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) {
+    return res.status(401).json({ error: 'Invalid manager credentials' });
+  }
+  return next();
+}
 
 // Helper: current day string (YYYY-MM-DD in local time)
 function getTodayString() {
@@ -42,7 +81,7 @@ function generateOfficeQR() {
   const remainingSeconds = Math.max(1, Math.ceil((expiresAt - now) / 1000));
   const nonce = crypto.randomBytes(8).toString('hex');
   const payload = `DAYMARK|V2|${OFFICE_ID}|${bucket}|${expiresAt}|${nonce}`;
-  const signature = crypto.createHmac('sha256', SECRET_KEY).update(payload).digest('hex').slice(0, 16);
+  const signature = crypto.createHmac('sha256', SECRET_KEY).update(payload).digest('hex');
   const code = `${payload}|${signature}`;
 
   return {
@@ -53,6 +92,13 @@ function generateOfficeQR() {
     remainingSeconds,
     intervalSeconds: QR_INTERVAL_SEC
   };
+}
+
+// Generate a signed permanent office poster code. Production scans still require strict GPS verification.
+function generatePosterQR() {
+  const payload = `DAYMARK|STATIC|${OFFICE_ID}`;
+  const signature = crypto.createHmac('sha256', SECRET_KEY).update(payload).digest('hex');
+  return { code: `${payload}|${signature}`, officeId: OFFICE_ID, type: 'fixed-print' };
 }
 
 // Prune old used challenges periodically (older than 15 minutes)
@@ -72,13 +118,14 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     mode: 'backend-connected',
+    adminAuthRequired: NODE_ENV === 'production',
     officeId: OFFICE_ID,
     timestamp: Date.now()
   });
 });
 
 // 2. Office Settings (Get & Update)
-app.get('/api/settings', async (req, res) => {
+app.get('/api/settings', requireAdmin, async (req, res) => {
   try {
     const rows = await db.all('SELECT key, value FROM settings');
     const settings = {
@@ -87,7 +134,7 @@ app.get('/api/settings', async (req, res) => {
       officeLng: null,
       geofenceRadius: 150,
       strictGps: true,
-      qrMode: 'fixed' // 'fixed' (printable poster) or 'rotating' (screen)
+      qrMode: 'fixed' // permanent printed poster is the default when no entrance screen is available
     };
     for (const r of rows) {
       if (r.key === 'officeName') settings.officeName = r.value;
@@ -103,9 +150,12 @@ app.get('/api/settings', async (req, res) => {
   }
 });
 
-app.post('/api/settings', async (req, res) => {
+app.post('/api/settings', requireAdmin, async (req, res) => {
   try {
     const { officeName, officeLat, officeLng, geofenceRadius, strictGps, qrMode } = req.body;
+    if (qrMode !== undefined && !['fixed', 'rotating'].includes(qrMode)) {
+      return res.status(400).json({ error: 'QR mode must be fixed or rotating.' });
+    }
     if (officeName !== undefined) {
       await db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['officeName', String(officeName)]);
     }
@@ -133,15 +183,10 @@ app.post('/api/settings', async (req, res) => {
 // 3. Fixed Printed Office QR endpoint
 app.get('/api/office/static-qr', async (req, res) => {
   try {
-    const raw = `DAYMARK|STATIC|${OFFICE_ID}`;
-    const signature = crypto.createHmac('sha256', SECRET_KEY).update(raw).digest('hex').slice(0, 16);
-    const code = `${raw}|${signature}`;
     const row = await db.get('SELECT value FROM settings WHERE key = ?', ['officeName']);
     res.json({
-      code,
-      officeId: OFFICE_ID,
+      ...generatePosterQR(),
       officeName: row ? row.value : 'Main Office',
-      type: 'fixed-print'
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -154,7 +199,7 @@ app.get('/api/office/qr', (req, res) => {
 });
 
 // 4. Central Dashboard Data
-app.get('/api/dashboard', async (req, res) => {
+app.get('/api/dashboard', requireAdmin, async (req, res) => {
   try {
     const today = getTodayString();
     const workers = await db.all('SELECT id, name, role, token, created_at FROM workers ORDER BY created_at ASC');
@@ -212,7 +257,7 @@ app.get('/api/dashboard', async (req, res) => {
 });
 
 // 5. Worker Management
-app.post('/api/workers', async (req, res) => {
+app.post('/api/workers', requireAdmin, async (req, res) => {
   try {
     const { name, role } = req.body;
     if (!name || !name.trim()) {
@@ -238,7 +283,7 @@ app.post('/api/workers', async (req, res) => {
   }
 });
 
-app.delete('/api/workers/:id', async (req, res) => {
+app.delete('/api/workers/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     await db.run('DELETE FROM workers WHERE id = ?', [id]);
@@ -308,15 +353,18 @@ app.post('/api/attendance/scan', async (req, res) => {
     let isStaticPoster = false;
 
     if (parts[0] === 'DAYMARK' && parts[1] === 'STATIC') {
-      // Fixed print format: DAYMARK|STATIC|officeId|signature
-      if (parts.length < 4) {
-        return res.status(400).json({ error: 'Invalid printed QR format' });
+      // Permanent printed format: DAYMARK|STATIC|officeId|signature
+      if (parts.length !== 4) {
+        return res.status(400).json({ error: 'Invalid office poster QR format.' });
       }
       const [, , scannedOfficeId, signature] = parts;
+      if (scannedOfficeId !== OFFICE_ID) {
+        return res.status(400).json({ error: 'This QR code belongs to a different office.' });
+      }
       const expectedPayload = `DAYMARK|STATIC|${scannedOfficeId}`;
-      const expectedSignature = crypto.createHmac('sha256', SECRET_KEY).update(expectedPayload).digest('hex').slice(0, 16);
+      const expectedSignature = crypto.createHmac('sha256', SECRET_KEY).update(expectedPayload).digest('hex');
       if (signature !== expectedSignature) {
-        return res.status(400).json({ error: 'Security alert: QR signature mismatch. Invalid or forged office poster.' });
+        return res.status(400).json({ error: 'QR signature mismatch. This code is invalid or altered.' });
       }
       isStaticPoster = true;
     } else if (parts[0] === 'DAYMARK' && parts[1] === 'V2') {
@@ -332,7 +380,7 @@ app.post('/api/attendance/scan', async (req, res) => {
 
       // Cryptographic Signature Verification
       const expectedPayload = `DAYMARK|V2|${scannedOfficeId}|${bucket}|${expiresAt}|${nonce}`;
-      const expectedSignature = crypto.createHmac('sha256', SECRET_KEY).update(expectedPayload).digest('hex').slice(0, 16);
+      const expectedSignature = crypto.createHmac('sha256', SECRET_KEY).update(expectedPayload).digest('hex');
 
       if (signature !== expectedSignature) {
         return res.status(400).json({
@@ -348,7 +396,8 @@ app.post('/api/attendance/scan', async (req, res) => {
       }
 
       // Anti-Replay: Check if Nonce was already used
-      const existingUse = await db.get('SELECT nonce, worker_id, scanned_at FROM used_challenges WHERE nonce = ?', [nonce]);
+      const workerChallengeKey = `${nonce}:${worker.id}`;
+      const existingUse = await db.get('SELECT nonce, worker_id, scanned_at FROM used_challenges WHERE nonce = ?', [workerChallengeKey]);
       if (existingUse) {
         return res.status(400).json({
           error: 'Security alert: This QR challenge was already scanned. Replay scans are blocked. Please scan the fresh rotating code.'
@@ -356,7 +405,7 @@ app.post('/api/attendance/scan', async (req, res) => {
       }
 
       // Record nonce immediately to prevent concurrency replay
-      await db.run('INSERT INTO used_challenges (nonce, worker_id, scanned_at) VALUES (?, ?, ?)', [nonce, worker.id, now]);
+      await db.run('INSERT INTO used_challenges (nonce, worker_id, scanned_at) VALUES (?, ?, ?)', [workerChallengeKey, worker.id, now]);
     } else {
       return res.status(400).json({
         error: 'Unrecognized QR code. Please scan the official Daymark office QR poster or screen.'
@@ -388,6 +437,12 @@ app.post('/api/attendance/scan', async (req, res) => {
 
     let distanceMeters = null;
     let scanStatus = 'verified';
+
+    if (NODE_ENV === 'production' && (officeLat === null || officeLng === null)) {
+      return res.status(503).json({
+        error: 'Office location is not configured yet. Ask your manager to set it before attendance scanning.'
+      });
+    }
 
     if (officeLat !== null && officeLng !== null) {
       if (location && typeof location.latitude === 'number' && typeof location.longitude === 'number') {

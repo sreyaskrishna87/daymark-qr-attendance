@@ -24,7 +24,7 @@ function request(options, body = null) {
 
 async function runTests() {
   console.log('--- Starting Daymark QR Attendance Server Integration Test ---');
-  
+
   // 1. Health check
   console.log('1. Testing /api/health...');
   const health = await request({ host: 'localhost', port: 3000, path: '/api/health', method: 'GET' });

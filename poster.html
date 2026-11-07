@@ -209,8 +209,8 @@ body {
 
 <div class="no-print-bar">
   <div>
-    <strong>Printable Attendance Poster</strong>
-    <div style="font-size:12px;color:var(--muted)">Print and stick this QR poster at your office entrance or door.</div>
+    <strong>Office Attendance QR Poster</strong>
+    <div style="font-size:12px;color:var(--muted)">Print once and place this signed QR at the office entrance.</div>
   </div>
   <div style="display:flex;gap:8px">
     <a href="/" class="btn secondary">Back to Dashboard</a>
@@ -230,9 +230,9 @@ body {
   </div>
 
   <h1 class="office-title" id="officeName">Office Attendance Check-in</h1>
-  <p class="office-subtitle">Scan this official code on arrival and departure</p>
+  <p class="office-subtitle">Workers scan with their private Daymark link when they arrive and leave.</p>
 
-  <div class="badge-fixed">Verified Office Location QR</div>
+  <div class="badge-fixed">Office attendance QR · GPS check required</div>
 
   <div class="qr-frame" id="qrContainer">
     <div style="color:var(--muted);font-size:12px">Generating high-res QR…</div>
@@ -251,13 +251,13 @@ body {
       </li>
       <li>
         <span class="step-num">3</span>
-        <div>Your arrival or departure is verified with office GPS proximity and saved instantly.</div>
+        <div>Access your private worker link and allow location access. Scans reporting a location outside the office geofence are rejected.</div>
       </li>
     </ol>
   </div>
 
   <div class="footer-note">
-    <span>🛡️ GPS Geofence Protected</span>
+    <span>QR copies remain usable · GPS can be spoofed</span>
     <span id="officeIdLabel">Office ID: OFFICE-HQ</span>
     <span>Daymark Attendance System</span>
   </div>
@@ -291,14 +291,8 @@ body {
       });
     } catch (err) {
       console.error('Error loading static QR:', err);
-      // Fallback
       const qrBox = document.getElementById('qrContainer');
-      qrBox.innerHTML = '';
-      new QRCode(qrBox, {
-        text: 'DAYMARK|STATIC|OFFICE-HQ',
-        width: 270,
-        height: 270
-      });
+      qrBox.innerHTML = '<div style="max-width:260px;padding:25px;color:#667063;font-size:13px;line-height:1.5">Could not load the office QR. Refresh this page or ask the manager to check the server.</div>';
     }
   }
 
@@ -307,3 +301,4 @@ body {
 </script>
 </body>
 </html>
+

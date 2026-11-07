@@ -1,3 +1,4 @@
+const fs = require('node:fs');
 const path = require('node:path');
 const sqlite3 = require('sqlite3').verbose();
 
@@ -7,6 +8,9 @@ let dbInstance = null;
 
 function getDb() {
   if (!dbInstance) {
+    try {
+      fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+    } catch {}
     dbInstance = new sqlite3.Database(DB_PATH, (err) => {
       if (err) {
         console.error('Failed to connect to SQLite database:', err.message);

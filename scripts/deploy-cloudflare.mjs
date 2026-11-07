@@ -1,9 +1,10 @@
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
 
-const root = resolve(new URL('..', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1'));
+const root = fileURLToPath(new URL('..', import.meta.url));
 
 function run(cmd, input = null) {
   console.log(`> ${cmd}`);
@@ -82,8 +83,8 @@ database_id = "${databaseId}"
   const secretKey = process.env.SECRET_KEY || crypto.randomBytes(32).toString('hex');
 
   try {
-    run('npx wrangler secret put ADMIN_PASSWORD', adminPassword);
-    run('npx wrangler secret put SECRET_KEY', secretKey);
+    run('npx wrangler secret put ADMIN_PASSWORD', adminPassword + '\n');
+    run('npx wrangler secret put SECRET_KEY', secretKey + '\n');
     console.log('Secrets configured successfully.');
   } catch (err) {
     console.error('Warning setting secrets:', err.message);
@@ -101,3 +102,4 @@ deploy().catch(err => {
   console.error('\nDeployment failed:', err);
   process.exit(1);
 });
+

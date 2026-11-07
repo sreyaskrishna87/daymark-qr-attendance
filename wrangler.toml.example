@@ -17,3 +17,4 @@ OFFICE_ID = "OFFICE-HQ"
 binding = "DB"
 database_name = "attendance-db"
 database_id = "YOUR_D1_DATABASE_ID"
+

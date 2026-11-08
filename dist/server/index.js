@@ -118,6 +118,7 @@ function loginView(){
       </form>
       <hr style="border:0;border-top:1px solid var(--border);margin:24px 0 16px">
       <div style="text-align:center">
+        <a href="/register" class="btn secondary" style="width:100%;margin-bottom:14px">New Employee? Register Here →</a>
         <p class="muted" style="margin-bottom:10px">Need admin management access?</p>
         <button class="secondary" id="adminLoginBtn" style="width:100%">Sign In as Admin</button>
       </div>
@@ -143,6 +144,83 @@ function promptAdmin(){
     sessionStorage.setItem('doit-admin',pass);
     adminPortalView();
   }
+}
+
+// ---------------- REGISTER VIEW ----------------
+function registerView(){
+  headerAuth.innerHTML='<a href="/" class="btn secondary" style="padding:6px 12px;font-size:12px">Back to Sign In</a>';
+  app.innerHTML=\`
+    <section class="card narrow">
+      <div style="text-align:center;margin-bottom:16px">
+        <span class="badge present">DOIT INNOVATIONS ONBOARDING</span>
+        <h1 style="margin-top:12px">Employee Registration</h1>
+        <p>Create your attendance account and set your personal password.</p>
+      </div>
+      <form id="regForm">
+        <label>Full Name</label>
+        <input name="name" id="regName" placeholder="e.g. Rahul Verma" required>
+
+        <div class="row">
+          <div style="flex:1">
+            <label>Department</label>
+            <input name="department" placeholder="e.g. Operations" value="Operations" required>
+          </div>
+          <div style="flex:1">
+            <label>Role / Job Title</label>
+            <input name="role" placeholder="e.g. Associate" value="Associate" required>
+          </div>
+        </div>
+
+        <label>Choose a Username</label>
+        <input name="username" id="regUsername" placeholder="e.g. rahul.verma" autocomplete="username" required>
+
+        <label>Create Password</label>
+        <input name="password" type="password" placeholder="Min. 6 characters" minlength="6" autocomplete="new-password" required>
+
+        <label>Confirm Password</label>
+        <input name="confirmPassword" type="password" placeholder="Repeat your password" minlength="6" autocomplete="new-password" required>
+
+        <div id="regMsg" class="notice hidden"></div>
+        <button style="width:100%;margin-top:18px">Register & Set Password</button>
+      </form>
+      <div style="text-align:center;margin-top:16px">
+        <p class="muted">Already registered? <a href="/" style="color:var(--primary);font-weight:600">Sign in here</a></p>
+      </div>
+    </section>
+  \`;
+
+  const nameInput=document.querySelector('#regName');
+  const userInput=document.querySelector('#regUsername');
+  nameInput.addEventListener('input',()=>{
+    if(!userInput.dataset.manual){
+      userInput.value=nameInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'.').replace(/^\\.|\.$/g,'');
+    }
+  });
+  userInput.addEventListener('input',()=>{userInput.dataset.manual='true'});
+
+  document.querySelector('#regForm').onsubmit=async e=>{
+    e.preventDefault();
+    const f=new FormData(e.target);
+    const pass=f.get('password');
+    const confirm=f.get('confirmPassword');
+    if(pass!==confirm){
+      msg('#regMsg','Passwords do not match. Please re-type.','error');
+      return;
+    }
+    try{
+      const res=await post('/api/register',{
+        name:f.get('name'),
+        department:f.get('department'),
+        role:f.get('role'),
+        username:f.get('username'),
+        password:pass
+      });
+      alert('Registration Successful!\\n\\nWelcome to DoIt Innovations, '+res.name+'!\\nYour Employee ID is: '+res.emp_code);
+      location.href='/';
+    }catch(err){
+      msg('#regMsg',err.message,'error');
+    }
+  };
 }
 
 // ---------------- EMPLOYEE ERP VIEW ----------------
@@ -389,6 +467,16 @@ async function adminPortalView(){
         </div>
       </div>
 
+      <!-- General Registration Link Banner -->
+      <div class="card" style="background:#f0f7f4;border-color:#bde0d3;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <strong style="color:var(--primary);font-size:14px">📢 General Employee Onboarding Link</strong>
+          <p style="font-size:12px;color:var(--muted);margin-top:2px">Send this general link to all employees so they can self-register and set their own passwords:</p>
+          <code style="background:#fff;padding:5px 9px;border-radius:6px;border:1px solid #c8e2d7;font-size:13px;margin-top:6px;display:inline-block;color:var(--primary);font-weight:700">https://doit-erp.pages.dev/register</code>
+        </div>
+        <button class="secondary" onclick="navigator.clipboard.writeText(location.origin+&#39;/register&#39;);alert(&#39;Copied registration link to clipboard: &#39;+location.origin+&#39;/register&#39;)">Copy Link</button>
+      </div>
+
       <!-- Executive Overview -->
       <div class="grid-4">
         <div class="stat-box">
@@ -631,6 +719,8 @@ if(location.pathname==='/poster'){
       </section>
     \`;
   }).catch(e=>{app.innerHTML='<p>Error: '+esc(e.message)+'</p>'});
+}else if(location.pathname==='/register'){
+  registerView();
 }else if(location.pathname==='/admin'||location.pathname==='/manager'){
   adminPortalView();
 }else{
@@ -787,6 +877,53 @@ async function handle(request,env){
     const url=new URL(request.url);
     const p=url.pathname;
     const method=request.method;
+
+    // Employee Self-Registration API
+    if(p==='/api/register'&&method==='POST'){
+      const b=await request.json();
+      const name=String(b.name||'').trim();
+      if(!name)return json({error:'Full name is required.'},400);
+
+      const password=String(b.password||'').trim();
+      if(password.length<6)return json({error:'Password must be at least 6 characters.'},400);
+
+      const dept=String(b.department||'General').trim();
+      const role=String(b.role||'Team Member').trim();
+
+      let username=String(b.username||name.toLowerCase().replace(/[^a-z0-9]+/g,'.').replace(/^\\.|\.$/g,'')).toLowerCase().slice(0,24);
+      if(!username)username='emp'+Date.now().toString().slice(-4);
+
+      const existing=await env.DB.prepare('SELECT id FROM employees WHERE LOWER(username)=?').bind(username).first();
+      if(existing)return json({error:'Username ' + username + ' is already taken. Please choose another.'},400);
+
+      const totalCount=(await env.DB.prepare('SELECT COUNT(*) as count FROM employees').first())?.count||0;
+      const empCode='DOIT-' + String(totalCount+101).padStart(4,'0');
+
+      const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
+      const hash=await passwordHash(password,salt);
+      const id=crypto.randomUUID();
+
+      await env.DB.prepare(
+        'INSERT INTO employees(id,emp_code,username,name,role,department,joining_date,password_salt,password_hash,created_at,active) VALUES(?,?,?,?,?,?,?,?,?,?,1)'
+      ).bind(id,empCode,username,name,role,dept,todayStr(),salt,hash,Date.now()).run();
+
+      const token=hex(crypto.getRandomValues(new Uint8Array(24)));
+      const tokenHash=await digest(token);
+      const expires=Date.now()+30*86400000;
+      await env.DB.prepare(
+        'INSERT INTO sessions(token_hash,employee_id,created_at,expires_at) VALUES(?,?,?,?)'
+      ).bind(tokenHash,id,Date.now(),expires).run();
+
+      return json({
+        ok:true,
+        id,
+        emp_code:empCode,
+        username,
+        name,
+        role,
+        department:dept
+      },201,{'set-cookie':'doit_session=' + token + '; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000'});
+    }
 
     // Login API
     if(p==='/api/login'&&method==='POST'){
@@ -1048,7 +1185,7 @@ async function handle(request,env){
     }
 
     // Serve HTML
-    if(p==='/admin'||p==='/manager'||p==='/poster'||p==='/') {
+    if(p==='/admin'||p==='/manager'||p==='/poster'||p==='/register'||p==='/') {
       return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
     }
     return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});

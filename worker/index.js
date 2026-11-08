@@ -485,6 +485,7 @@ async function adminPortalView(){
                 <th>Present (Month)</th>
                 <th>Absent (Month)</th>
                 <th>Hours (Month)</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -502,6 +503,9 @@ async function adminPortalView(){
                   <td style="color:var(--success-ink);font-weight:700">\${e.monthStats.presentDays} d</td>
                   <td style="color:var(--danger-ink);font-weight:700">\${e.monthStats.absentDays} d</td>
                   <td>\${e.monthStats.totalHours} hrs</td>
+                  <td>
+                    <button class="secondary" style="padding:4px 9px;font-size:11px" onclick="resetEmpPassword('\${e.id}','\${esc(e.name)}')">Reset Password</button>
+                  </td>
                 </tr>
               \`).join('')}
             </tbody>
@@ -598,6 +602,20 @@ async function adminPortalView(){
     alert('Admin authentication failed: '+err.message);
   }
 }
+
+window.resetEmpPassword=async(empId,empName)=>{
+  if(!confirm('Reset and generate a new password for '+empName+'?'))return;
+  try{
+    const res=await api('/api/admin/employees/reset-password',{
+      method:'POST',
+      headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},
+      body:JSON.stringify({employeeId:empId})
+    });
+    alert('Password Reset for '+res.name+' ('+res.emp_code+'):\\n\\nUsername: '+res.username+'\\nNew Password: '+res.newPassword+'\\n\\nPlease share this temporary password with the employee.');
+  }catch(err){
+    alert('Failed to reset password: '+err.message);
+  }
+};
 
 // ---------------- ROUTER ----------------
 if(location.pathname==='/poster'){
@@ -974,6 +992,21 @@ async function handle(request,env){
       ).bind(id,empCode,username,name,role,dept,todayStr(),salt,hash,Date.now()).run();
 
       return json({id,emp_code:empCode,username,password:tempPassword,name,role,department:dept},201);
+    }
+
+    // Reset Employee Password
+    if(p==='/api/admin/employees/reset-password'&&method==='POST'){
+      const b=await request.json();
+      const empId=String(b.employeeId||'');
+      const emp=await env.DB.prepare('SELECT id,username,name,emp_code FROM employees WHERE id=?').bind(empId).first();
+      if(!emp)return json({error:'Employee not found.'},404);
+
+      const newPassword=hex(crypto.getRandomValues(new Uint8Array(5)));
+      const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
+      const hash=await passwordHash(newPassword,salt);
+
+      await env.DB.prepare('UPDATE employees SET password_salt=?, password_hash=? WHERE id=?').bind(salt,hash,emp.id).run();
+      return json({ok:true,id:emp.id,name:emp.name,emp_code:emp.emp_code,username:emp.username,newPassword});
     }
 
     // Admin ERP Dashboard & Monthly Reports

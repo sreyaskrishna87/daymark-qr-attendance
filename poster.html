@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Daymark — Printable Office Attendance Poster</title>
+<title>DoIt Innovations — Printable Office Attendance Poster</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 :root {
@@ -226,11 +226,11 @@ body {
     <div class="brand-mark">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
     </div>
-    daymark
+    DoIt Innovations
   </div>
 
   <h1 class="office-title" id="officeName">Office Attendance Check-in</h1>
-  <p class="office-subtitle">Workers scan with their private Daymark link when they arrive and leave.</p>
+  <p class="office-subtitle">Employees scan with their DoIt Innovations account when they arrive and leave.</p>
 
   <div class="badge-fixed">Office attendance QR · GPS check required</div>
 
@@ -243,7 +243,7 @@ body {
     <ol class="steps">
       <li>
         <span class="step-num">1</span>
-        <div>Open your <strong>Daymark personal check-in link</strong> on your smartphone.</div>
+        <div>Open your <strong>DoIt Innovations account</strong> on your smartphone.</div>
       </li>
       <li>
         <span class="step-num">2</span>
@@ -251,15 +251,15 @@ body {
       </li>
       <li>
         <span class="step-num">3</span>
-        <div>Access your private worker link and allow location access. Scans reporting a location outside the office geofence are rejected.</div>
+        <div>Allow camera and location access. Scans reporting a location outside the office geofence are rejected.</div>
       </li>
     </ol>
   </div>
 
   <div class="footer-note">
-    <span>QR copies remain usable · GPS can be spoofed</span>
+    <span>QR copies remain usable · GPS check verified</span>
     <span id="officeIdLabel">Office ID: OFFICE-HQ</span>
-    <span>Daymark Attendance System</span>
+    <span>DoIt Innovations Attendance System</span>
   </div>
 </div>
 
@@ -292,7 +292,7 @@ body {
     } catch (err) {
       console.error('Error loading static QR:', err);
       const qrBox = document.getElementById('qrContainer');
-      qrBox.innerHTML = '<div style="max-width:260px;padding:25px;color:#667063;font-size:13px;line-height:1.5">Could not load the office QR. Refresh this page or ask the manager to check the server.</div>';
+      qrBox.innerHTML = '<div style="max-width:260px;padding:25px;color:#667063;font-size:13px;line-height:1.5">Could not load the office QR. Refresh this page or ask the admin to check the server.</div>';
     }
   }
 

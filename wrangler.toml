@@ -1,12 +1,11 @@
-name = "daymark-attendance"
+name = "doit-attendance"
 main = "worker/index.js"
 compatibility_date = "2024-04-01"
 
 [vars]
-OFFICE_ID = "OFFICE-HQ"
+OFFICE_ID = "DOIT-HQ"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "daymark-attendance-db"
 database_id = "0f7f1414-77d3-4b5d-8dde-664f64ca85e2"
-

@@ -1360,6 +1360,32 @@ async function handle(request,env){
     const p=url.pathname;
     const method=request.method;
 
+    // Health check & status API (for monitoring, external checkers, and tests)
+    if((p==='/api/health'||p==='/health')&&method==='GET'){
+      return json({
+        status:'ok',
+        app:'DoIt ERP Attendance',
+        mode:'backend-connected',
+        adminAuthRequired:true,
+        officeId:env.OFFICE_ID||'DOIT-HQ',
+        timestamp:Date.now()
+      });
+    }
+
+    // Fixed Printable Poster QR challenge
+    if((p==='/api/office/static-qr'||p==='/api/poster')&&method==='GET'){
+      const office=env.OFFICE_ID||'DOIT-HQ';
+      const payload='DOIT|STATIC|' + office;
+      const signature=await sign(payload,env.SECRET_KEY);
+      const settings=Object.fromEntries((await env.DB.prepare('SELECT key,value FROM settings').all()).results.map(x=>[x.key,x.value]));
+      return json({
+        code:payload + '|' + signature,
+        officeId:office,
+        type:'fixed-print',
+        officeName:settings.officeName||'DoIt Innovations HQ'
+      });
+    }
+
     // Employee Self-Registration API
     if(p==='/api/register'&&method==='POST'){
       const b=await request.json();

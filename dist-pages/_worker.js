@@ -286,7 +286,10 @@ function msg(id,s,cls=''){
 // ---------------- LOGIN VIEW ----------------
 function loginView(){
   headerAuth.innerHTML='<button class="secondary" id="adminHeaderBtn">Admin Portal</button>';
-  document.querySelector('#adminHeaderBtn').onclick=promptAdmin;
+  document.querySelector('#adminHeaderBtn').onclick=()=>{
+    history.pushState(null,'','/admin');
+    if(adminPassword){adminPortalView();}else{adminLoginView();}
+  };
   app.innerHTML=\`
     \${installBannerHtml()}
     <section class="card narrow">
@@ -321,21 +324,63 @@ function loginView(){
       msg('#loginMsg',err.message,'error');
     }
   };
-  document.querySelector('#adminLoginBtn').onclick=promptAdmin;
+  document.querySelector('#adminLoginBtn').onclick=()=>{
+    history.pushState(null,'','/admin');
+    if(adminPassword){adminPortalView();}else{adminLoginView();}
+  };
 }
 
-function promptAdmin(){
-  const pass=prompt('Enter DoIt Innovations Admin Password:');
-  if(pass){
-    adminPassword=pass;
-    sessionStorage.setItem('doit-admin',pass);
-    adminPortalView();
-  }
+// ---------------- ADMIN LOGIN VIEW (INLINE FORM) ----------------
+function adminLoginView(initialError=''){
+  headerAuth.innerHTML='<a href="/" class="btn secondary" style="padding:6px 12px;font-size:12px">Employee Portal</a>';
+  app.innerHTML=\`
+    <section class="card narrow">
+      <div style="text-align:center;margin-bottom:16px">
+        <span class="badge present">DOIT MANAGEMENT</span>
+        <h1 style="margin-top:12px">Manager & Admin Sign In</h1>
+        <p>Enter the administrative password to manage employees, access company timesheets, view scan logs, and configure office geofences.</p>
+      </div>
+      <form id="adminLoginForm">
+        <label>Admin Password</label>
+        <input name="adminPassword" id="adminPassInput" type="password" placeholder="••••••••" autocomplete="current-password" required autofocus>
+        <div id="adminLoginMsg" class="notice \${initialError ? 'error' : 'hidden'}">\${esc(initialError)}</div>
+        <button id="adminSubmitBtn" style="width:100%;margin-top:18px">Access Management Dashboard</button>
+      </form>
+      <hr style="border:0;border-top:1px solid var(--border);margin:24px 0 16px">
+      <div style="text-align:center">
+        <a href="/" id="backToEmpBtn" class="btn secondary" style="width:100%">← Back to Employee Sign In</a>
+      </div>
+    </section>
+  \`;
+
+  document.querySelector('#backToEmpBtn').onclick=e=>{
+    e.preventDefault();
+    history.pushState(null,'','/');
+    employeeView();
+  };
+
+  document.querySelector('#adminLoginForm').onsubmit=async e=>{
+    e.preventDefault();
+    const f=new FormData(e.target);
+    const pass=f.get('adminPassword');
+    const btn=document.querySelector('#adminSubmitBtn');
+    if(btn)btn.disabled=true;
+    try{
+      await api('/api/admin/settings',{headers:{authorization:'Basic '+btoa('admin:'+pass)}});
+      adminPassword=pass;
+      sessionStorage.setItem('doit-admin',pass);
+      adminPortalView();
+    }catch(err){
+      if(btn)btn.disabled=false;
+      msg('#adminLoginMsg','Authentication failed: '+(err.message||'Incorrect admin password.'),'error');
+    }
+  };
 }
 
 // ---------------- REGISTER VIEW ----------------
 function registerView(){
   headerAuth.innerHTML='<a href="/" class="btn secondary" style="padding:6px 12px;font-size:12px">Back to Sign In</a>';
+  const codeParam=new URLSearchParams(location.search).get('code')||'';
   app.innerHTML=\`
     <section class="card narrow">
       <div style="text-align:center;margin-bottom:16px">
@@ -358,6 +403,10 @@ function registerView(){
           </div>
         </div>
 
+        <label>Company Onboarding Passcode</label>
+        <input name="regCode" id="regCode" placeholder="Enter company passcode (e.g. DOIT2026)" value="\${esc(codeParam)}" required>
+        <p class="muted" style="font-size:12px;margin:2px 0 10px">Required to join DoIt Innovations ERP. Contact your manager if you need the code.</p>
+
         <label>Choose a Username</label>
         <input name="username" id="regUsername" placeholder="e.g. rahul.verma" autocomplete="username" required>
 
@@ -368,7 +417,7 @@ function registerView(){
         <input name="confirmPassword" type="password" placeholder="Repeat your password" minlength="6" autocomplete="new-password" required>
 
         <div id="regMsg" class="notice hidden"></div>
-        <button style="width:100%;margin-top:18px">Register & Set Password</button>
+        <button id="regSubmitBtn" style="width:100%;margin-top:18px">Register & Set Password</button>
       </form>
       <div style="text-align:center;margin-top:16px">
         <p class="muted">Already registered? <a href="/" style="color:var(--primary);font-weight:600">Sign in here</a></p>
@@ -394,17 +443,47 @@ function registerView(){
       msg('#regMsg','Passwords do not match. Please re-type.','error');
       return;
     }
+    const btn=document.querySelector('#regSubmitBtn');
+    if(btn)btn.disabled=true;
     try{
       const res=await post('/api/register',{
         name:f.get('name'),
         department:f.get('department'),
         role:f.get('role'),
         username:f.get('username'),
-        password:pass
+        password:pass,
+        regCode:f.get('regCode')
       });
-      alert('Registration Successful!\\n\\nWelcome to DoIt Innovations, '+res.name+'!\\nYour Employee ID is: '+res.emp_code);
-      location.href='/';
+      // Show rich in-page confirmation screen
+      app.innerHTML=\`
+        <section class="card narrow" style="text-align:center;padding:36px 20px">
+          <div style="font-size:44px;margin-bottom:12px">🎉</div>
+          <span class="badge present">REGISTRATION SUCCESSFUL</span>
+          <h1 style="margin-top:12px">Welcome to DoIt Innovations!</h1>
+          <p style="margin-bottom:16px">Your account has been created. Here are your ERP profile details:</p>
+          <div style="background:#f0f7f4;border:1px solid #c8e2d7;border-radius:12px;padding:16px;margin:20px 0;text-align:left">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #d1e7dd">
+              <span class="muted">Employee Name:</span>
+              <strong>\${esc(res.name)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #d1e7dd">
+              <span class="muted">Employee Code:</span>
+              <strong style="color:var(--primary)">\${esc(res.emp_code)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #d1e7dd">
+              <span class="muted">Username:</span>
+              <strong>\${esc(res.username)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0">
+              <span class="muted">Department & Role:</span>
+              <strong>\${esc(res.department)} · \${esc(res.role)}</strong>
+            </div>
+          </div>
+          <a href="/" class="btn" style="width:100%;text-align:center;display:block">Go to My Attendance Dashboard →</a>
+        </section>
+      \`;
     }catch(err){
+      if(btn)btn.disabled=false;
       msg('#regMsg',err.message,'error');
     }
   };
@@ -747,7 +826,7 @@ function stopScanner(){
 // ---------------- ADMIN ERP PORTAL VIEW ----------------
 async function adminPortalView(){
   if(!adminPassword){
-    promptAdmin();
+    adminLoginView();
     return;
   }
 
@@ -770,7 +849,7 @@ async function adminPortalView(){
     document.querySelector('#adminLogoutBtn').onclick=()=>{
       adminPassword='';
       sessionStorage.removeItem('doit-admin');
-      loginView();
+      adminLoginView();
     };
 
     app.innerHTML=\`
@@ -788,10 +867,11 @@ async function adminPortalView(){
       <div class="card" style="background:#f0f7f4;border-color:#bde0d3;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
         <div>
           <strong style="color:var(--primary);font-size:14px">📢 General Employee Onboarding Link</strong>
-          <p style="font-size:12px;color:var(--muted);margin-top:2px">Send this general link to all employees so they can self-register and set their own passwords:</p>
-          <code style="background:#fff;padding:5px 9px;border-radius:6px;border:1px solid #c8e2d7;font-size:13px;margin-top:6px;display:inline-block;color:var(--primary);font-weight:700">https://doit-erp.pages.dev/register</code>
+          <p style="font-size:12px;color:var(--muted);margin-top:2px">Send this general invite link to employees so they can self-register directly:</p>
+          <code id="regLinkDisplay" style="background:#fff;padding:5px 9px;border-radius:6px;border:1px solid #c8e2d7;font-size:13px;margin-top:6px;display:inline-block;color:var(--primary);font-weight:700">\${location.origin}/register?code=\${encodeURIComponent(s.regPasscode||'DOIT2026')}</code>
+          <div style="margin-top:4px;font-size:12px;color:var(--muted)">Company Passcode: <strong id="regPasscodeDisplay" style="color:var(--ink)">\${esc(s.regPasscode||'DOIT2026')}</strong></div>
         </div>
-        <button class="secondary" onclick="navigator.clipboard.writeText(location.origin+&#39;/register&#39;);alert(&#39;Copied registration link to clipboard: &#39;+location.origin+&#39;/register&#39;)">Copy Link</button>
+        <button class="secondary" id="copyRegLinkBtn">Copy Invite Link</button>
       </div>
 
       <!-- Executive Overview -->
@@ -842,8 +922,8 @@ async function adminPortalView(){
         </div>
 
         <div class="card">
-          <h2>Office Geofence Settings</h2>
-          <p>Configure the physical coordinates where employees are authorized to punch.</p>
+          <h2>Office Geofence & Registration Settings</h2>
+          <p>Configure coordinates for authorized entrance punching and set employee onboarding security.</p>
           <form id="officeSettingsForm">
             <label>Office Name</label>
             <input name="officeName" value="\${esc(s.officeName)}">
@@ -859,7 +939,10 @@ async function adminPortalView(){
             </div>
             <label>Allowed Radius (metres)</label>
             <input name="radius" type="number" value="\${esc(s.radius)}">
-            <button style="margin-top:16px">Save Office Geofence</button>
+            <label>Company Registration Passcode</label>
+            <input name="regPasscode" value="\${esc(s.regPasscode||'DOIT2026')}" required>
+            <p class="muted" style="font-size:12px;margin:2px 0 10px">Required for employee onboarding on /register.</p>
+            <button style="margin-top:16px">Save Office & Security Settings</button>
           </form>
           <div id="settingsMsg" class="notice hidden"></div>
         </div>
@@ -981,6 +1064,16 @@ async function adminPortalView(){
       }
     };
 
+    const copyBtn=document.querySelector('#copyRegLinkBtn');
+    if(copyBtn){
+      copyBtn.onclick=()=>{
+        const link=location.origin+'/register?code='+encodeURIComponent(s.regPasscode||'DOIT2026');
+        navigator.clipboard.writeText(link).catch(()=>{});
+        copyBtn.textContent='✓ Link Copied!';
+        setTimeout(()=>{copyBtn.textContent='Copy Invite Link';},2500);
+      };
+    }
+
     document.querySelector('#officeSettingsForm').onsubmit=async e=>{
       e.preventDefault();
       const f=new FormData(e.target);
@@ -992,10 +1085,17 @@ async function adminPortalView(){
             officeName:f.get('officeName'),
             officeLat:f.get('officeLat'),
             officeLng:f.get('officeLng'),
-            radius:f.get('radius')
+            radius:f.get('radius'),
+            regPasscode:f.get('regPasscode')
           })
         });
-        msg('#settingsMsg','Office geofence settings saved successfully.','success');
+        msg('#settingsMsg','Office & security settings saved successfully.','success');
+        const newCode=f.get('regPasscode')||'DOIT2026';
+        s.regPasscode=newCode;
+        const codeDisplay=document.querySelector('#regPasscodeDisplay');
+        if(codeDisplay)codeDisplay.textContent=newCode;
+        const linkDisplay=document.querySelector('#regLinkDisplay');
+        if(linkDisplay)linkDisplay.textContent=location.origin+'/register?code='+encodeURIComponent(newCode);
       }catch(err){
         msg('#settingsMsg',err.message,'error');
       }
@@ -1004,23 +1104,55 @@ async function adminPortalView(){
   }catch(err){
     adminPassword='';
     sessionStorage.removeItem('doit-admin');
-    loginView();
-    alert('Admin authentication failed: '+err.message);
+    adminLoginView('Admin authentication failed: '+(err.message||'Please sign in again.'));
   }
 }
 
 window.resetEmpPassword=async(empId,empName)=>{
-  if(!confirm('Reset and generate a new password for '+empName+'?'))return;
-  try{
-    const res=await api('/api/admin/employees/reset-password',{
-      method:'POST',
-      headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},
-      body:JSON.stringify({employeeId:empId})
-    });
-    alert('Password Reset for '+res.name+' ('+res.emp_code+'):\\n\\nUsername: '+res.username+'\\nNew Password: '+res.newPassword+'\\n\\nPlease share this temporary password with the employee.');
-  }catch(err){
-    alert('Failed to reset password: '+err.message);
-  }
+  const modal=document.createElement('div');
+  modal.className='modal-overlay';
+  modal.id='confirmResetModal';
+  modal.innerHTML=\`
+    <div class="modal-box" style="max-width:440px;text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">🔑</div>
+      <h2>Reset Password</h2>
+      <p style="margin:10px 0 20px">Are you sure you want to generate a new password for <strong>\${esc(empName)}</strong>?</p>
+      <div class="row" style="justify-content:center;gap:10px">
+        <button class="secondary" id="cancelResetBtn">Cancel</button>
+        <button class="danger" id="confirmResetBtn">Generate New Password</button>
+      </div>
+      <div id="resetModalMsg" class="notice hidden" style="margin-top:14px"></div>
+    </div>
+  \`;
+  document.body.appendChild(modal);
+  document.querySelector('#cancelResetBtn').onclick=()=>modal.remove();
+  document.querySelector('#confirmResetBtn').onclick=async()=>{
+    const btn=document.querySelector('#confirmResetBtn');
+    btn.disabled=true;
+    try{
+      const res=await api('/api/admin/employees/reset-password',{
+        method:'POST',
+        headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},
+        body:JSON.stringify({employeeId:empId})
+      });
+      modal.innerHTML=\`
+        <div class="modal-box" style="max-width:460px;text-align:center">
+          <div style="font-size:36px;margin-bottom:8px">✅</div>
+          <h2>Password Reset Complete</h2>
+          <p>Share these credentials with the employee:</p>
+          <div style="background:#f0f7f4;border:1px solid #c8e2d7;border-radius:10px;padding:14px;margin:16px 0;text-align:left">
+            <div><span class="muted">Employee:</span> <strong>\${esc(res.name)} (\${esc(res.emp_code)})</strong></div>
+            <div style="margin-top:6px"><span class="muted">Username:</span> <code>\${esc(res.username)}</code></div>
+            <div style="margin-top:6px"><span class="muted">New Password:</span> <code style="font-size:15px;color:var(--primary);font-weight:700">\${esc(res.newPassword)}</code></div>
+          </div>
+          <button style="width:100%" onclick="document.querySelector('#confirmResetModal')?.remove()">Done</button>
+        </div>
+      \`;
+    }catch(err){
+      btn.disabled=false;
+      msg('#resetModalMsg',err.message,'error');
+    }
+  };
 };
 
 window.viewEmpTimesheet=async(empId,empName)=>{
@@ -1102,7 +1234,16 @@ window.viewEmpTimesheet=async(empId,empName)=>{
     \`;
     document.body.appendChild(modal);
   }catch(err){
-    alert('Failed to load timesheet: '+err.message);
+    const modal=document.createElement('div');
+    modal.className='modal-overlay';
+    modal.innerHTML=\`
+      <div class="modal-box" style="max-width:400px;text-align:center">
+        <h2>Timesheet Unavailable</h2>
+        <p class="notice error">\${esc(err.message)}</p>
+        <button style="margin-top:14px" onclick="this.closest('.modal-overlay').remove()">Close</button>
+      </div>
+    \`;
+    document.body.appendChild(modal);
   }
 };
 
@@ -1123,10 +1264,22 @@ if(location.pathname==='/poster'){
 }else if(location.pathname==='/register'){
   registerView();
 }else if(location.pathname==='/admin'||location.pathname==='/manager'){
-  adminPortalView();
+  if(adminPassword){
+    adminPortalView();
+  }else{
+    adminLoginView();
+  }
 }else{
   employeeView();
 }
+window.onpopstate=()=>{
+  if(location.pathname==='/register')registerView();
+  else if(location.pathname==='/admin'||location.pathname==='/manager'){
+    if(adminPassword)adminPortalView();else adminLoginView();
+  }else if(location.pathname==='/poster'){
+    location.reload();
+  }else employeeView();
+};
 </script>
 </body>
 </html>`;
@@ -1389,6 +1542,16 @@ async function handle(request,env){
     // Employee Self-Registration API
     if(p==='/api/register'&&method==='POST'){
       const b=await request.json();
+
+      // Validate Company Registration Passcode
+      const settingsList=(await env.DB.prepare('SELECT key,value FROM settings').all()).results;
+      const settingsMap=Object.fromEntries(settingsList.map(x=>[x.key,x.value]));
+      const expectedCode=settingsMap.regPasscode||env.REGISTRATION_PASSCODE||'DOIT2026';
+      const providedCode=String(b.regCode||'').trim();
+      if(providedCode!==expectedCode){
+        return json({error:'Invalid Company Registration Passcode. Please obtain the company onboarding code from your administrator.'},403);
+      }
+
       const name=String(b.name||'').trim();
       if(!name)return json({error:'Full name is required.'},400);
 
@@ -1582,14 +1745,24 @@ async function handle(request,env){
         officeName:o.officeName||'DoIt Innovations Head Office',
         officeLat:o.officeLat||'',
         officeLng:o.officeLng||'',
-        radius:o.radius||'150'
+        radius:o.radius||'150',
+        regPasscode:o.regPasscode||env.REGISTRATION_PASSCODE||'DOIT2026'
       });
     }
 
     if(p==='/api/admin/settings'&&method==='POST'){
       const b=await request.json();
-      for(const [k,v] of Object.entries({officeName:b.officeName,officeLat:b.officeLat,officeLng:b.officeLng,radius:b.radius})){
-        await env.DB.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').bind(k,String(v)).run();
+      const fields={
+        officeName:b.officeName,
+        officeLat:b.officeLat,
+        officeLng:b.officeLng,
+        radius:b.radius,
+        regPasscode:b.regPasscode||'DOIT2026'
+      };
+      for(const [k,v] of Object.entries(fields)){
+        if(v!==undefined&&v!==null){
+          await env.DB.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').bind(k,String(v)).run();
+        }
       }
       return json({ok:true});
     }

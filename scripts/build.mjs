@@ -6,7 +6,10 @@ await rm(out, { recursive: true, force: true });
 await mkdir(resolve(out, 'server'), { recursive: true });
 await mkdir(resolve(out, '.openai'), { recursive: true });
 await Promise.all([
-  readFile(resolve(root, 'worker/index.js')).then(data => writeFile(resolve(out, 'server/index.js'), data)),
+  readFile(resolve(root, 'worker/index.js')).then(data => Promise.all([
+    writeFile(resolve(out, 'server/index.js'), data),
+    writeFile(resolve(root, 'dist-pages/_worker.js'), data)
+  ])),
   readFile(resolve(root, '.openai/hosting.json')).then(data => writeFile(resolve(out, '.openai/hosting.json'), data)),
 ]);
 console.log(`Built ${out}`);

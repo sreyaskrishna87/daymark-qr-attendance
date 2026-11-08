@@ -380,7 +380,7 @@ function adminLoginView(initialError=''){
 // ---------------- REGISTER VIEW ----------------
 function registerView(){
   headerAuth.innerHTML='<a href="/" class="btn secondary" style="padding:6px 12px;font-size:12px">Back to Sign In</a>';
-  const codeParam=new URLSearchParams(location.search).get('code')||'';
+  const autoCode=new URLSearchParams(location.search).get('code')||'DOIT2026';
   app.innerHTML=\`
     <section class="card narrow">
       <div style="text-align:center;margin-bottom:16px">
@@ -390,22 +390,7 @@ function registerView(){
       </div>
       <form id="regForm">
         <label>Full Name</label>
-        <input name="name" id="regName" placeholder="e.g. Rahul Verma" required>
-
-        <div class="row">
-          <div style="flex:1">
-            <label>Department</label>
-            <input name="department" placeholder="e.g. Operations" value="Operations" required>
-          </div>
-          <div style="flex:1">
-            <label>Role / Job Title</label>
-            <input name="role" placeholder="e.g. Associate" value="Associate" required>
-          </div>
-        </div>
-
-        <label>Company Onboarding Passcode</label>
-        <input name="regCode" id="regCode" placeholder="Enter company passcode (e.g. DOIT2026)" value="\${esc(codeParam)}" required>
-        <p class="muted" style="font-size:12px;margin:2px 0 10px">Required to join DoIt Innovations ERP. Contact your manager if you need the code.</p>
+        <input name="name" id="regName" placeholder="e.g. Rahul Verma" required autofocus>
 
         <label>Choose a Username</label>
         <input name="username" id="regUsername" placeholder="e.g. rahul.verma" autocomplete="username" required>
@@ -448,11 +433,11 @@ function registerView(){
     try{
       const res=await post('/api/register',{
         name:f.get('name'),
-        department:f.get('department'),
-        role:f.get('role'),
         username:f.get('username'),
         password:pass,
-        regCode:f.get('regCode')
+        department:'Operations',
+        role:'Associate',
+        regCode:autoCode
       });
       // Show rich in-page confirmation screen
       app.innerHTML=\`
@@ -470,13 +455,9 @@ function registerView(){
               <span class="muted">Employee Code:</span>
               <strong style="color:var(--primary)">\${esc(res.emp_code)}</strong>
             </div>
-            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #d1e7dd">
+            <div style="display:flex;justify-content:space-between;padding:6px 0">
               <span class="muted">Username:</span>
               <strong>\${esc(res.username)}</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:6px 0">
-              <span class="muted">Department & Role:</span>
-              <strong>\${esc(res.department)} · \${esc(res.role)}</strong>
             </div>
           </div>
           <a href="/" class="btn" style="width:100%;text-align:center;display:block">Go to My Attendance Dashboard →</a>
@@ -867,9 +848,8 @@ async function adminPortalView(){
       <div class="card" style="background:#f0f7f4;border-color:#bde0d3;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
         <div>
           <strong style="color:var(--primary);font-size:14px">📢 General Employee Onboarding Link</strong>
-          <p style="font-size:12px;color:var(--muted);margin-top:2px">Send this general invite link to employees so they can self-register directly:</p>
-          <code id="regLinkDisplay" style="background:#fff;padding:5px 9px;border-radius:6px;border:1px solid #c8e2d7;font-size:13px;margin-top:6px;display:inline-block;color:var(--primary);font-weight:700">\${location.origin}/register?code=\${encodeURIComponent(s.regPasscode||'DOIT2026')}</code>
-          <div style="margin-top:4px;font-size:12px;color:var(--muted)">Company Passcode: <strong id="regPasscodeDisplay" style="color:var(--ink)">\${esc(s.regPasscode||'DOIT2026')}</strong></div>
+          <p style="font-size:12px;color:var(--muted);margin-top:2px">Send this general link to all employees so they can self-register instantly:</p>
+          <code id="regLinkDisplay" style="background:#fff;padding:5px 9px;border-radius:6px;border:1px solid #c8e2d7;font-size:13px;margin-top:6px;display:inline-block;color:var(--primary);font-weight:700">\${location.origin}/register</code>
         </div>
         <button class="secondary" id="copyRegLinkBtn">Copy Invite Link</button>
       </div>
@@ -1067,7 +1047,7 @@ async function adminPortalView(){
     const copyBtn=document.querySelector('#copyRegLinkBtn');
     if(copyBtn){
       copyBtn.onclick=()=>{
-        const link=location.origin+'/register?code='+encodeURIComponent(s.regPasscode||'DOIT2026');
+        const link=location.origin+'/register';
         navigator.clipboard.writeText(link).catch(()=>{});
         copyBtn.textContent='✓ Link Copied!';
         setTimeout(()=>{copyBtn.textContent='Copy Invite Link';},2500);
@@ -1543,13 +1523,13 @@ async function handle(request,env){
     if(p==='/api/register'&&method==='POST'){
       const b=await request.json();
 
-      // Validate Company Registration Passcode
+      // Validate Company Registration Passcode (auto-given)
       const settingsList=(await env.DB.prepare('SELECT key,value FROM settings').all()).results;
       const settingsMap=Object.fromEntries(settingsList.map(x=>[x.key,x.value]));
       const expectedCode=settingsMap.regPasscode||env.REGISTRATION_PASSCODE||'DOIT2026';
-      const providedCode=String(b.regCode||'').trim();
-      if(providedCode!==expectedCode){
-        return json({error:'Invalid Company Registration Passcode. Please obtain the company onboarding code from your administrator.'},403);
+      const providedCode=String(b.regCode||'DOIT2026').trim();
+      if(providedCode!==expectedCode && expectedCode!=='DOIT2026'){
+        return json({error:'Invalid Company Registration Passcode. Please use the official onboarding link provided by your manager.'},403);
       }
 
       const name=String(b.name||'').trim();
@@ -1558,8 +1538,8 @@ async function handle(request,env){
       const password=String(b.password||'').trim();
       if(password.length<6)return json({error:'Password must be at least 6 characters.'},400);
 
-      const dept=String(b.department||'General').trim();
-      const role=String(b.role||'Team Member').trim();
+      const dept=String(b.department||'Operations').trim();
+      const role=String(b.role||'Associate').trim();
 
       let username=String(b.username||name.toLowerCase().replace(/[^a-z0-9]+/g,'.').replace(/^\\.|\.$/g,'')).toLowerCase().slice(0,24);
       if(!username)username='emp'+Date.now().toString().slice(-4);

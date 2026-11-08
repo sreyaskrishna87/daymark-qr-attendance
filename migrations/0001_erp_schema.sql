@@ -46,3 +46,4 @@ CREATE TABLE IF NOT EXISTS settings (
 
 -- Backward compatibility view
 CREATE VIEW IF NOT EXISTS workers AS SELECT id, emp_code, username, name, role, department, password_salt, password_hash, created_at, active FROM employees;
+

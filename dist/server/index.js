@@ -6,6 +6,13 @@ const html = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0d3b2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DoIt ERP">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <title>DoIt Innovations · Enterprise Attendance ERP</title>
 <style>
 :root{
@@ -77,6 +84,17 @@ video{width:100%;max-height:45vh;border-radius:12px;background:#000;margin:12px 
 .breakdown-box{padding:10px 14px;border:1px dashed #c8d8ce;border-radius:8px;background:#ffffff;margin:4px 0}
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,25,18,0.6);display:flex;align-items:center;justify-content:center;z-index:999;padding:16px}
 .modal-box{background:#fff;border-radius:16px;max-width:850px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 12px 40px rgba(0,0,0,0.2)}
+.install-banner{background:#0d3b2e;color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 4px 16px rgba(13,59,46,0.18);border:1px solid rgba(255,255,255,0.12)}
+.install-banner strong{color:#fff;font-size:14px}
+.install-banner p{color:#c4ded3;font-size:12px;margin:2px 0 0}
+.install-icon{font-size:22px;background:rgba(255,255,255,0.12);width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.btn-install{background:#10b981;color:#fff;font-weight:700;border:0;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s}
+.btn-install:hover{background:#059669}
+.btn-dismiss{background:transparent;border:0;color:#c4ded3;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:6px}
+.btn-dismiss:hover{background:rgba(255,255,255,0.1)}
+.install-steps{background:#f8faf8;border:1px solid var(--border);border-radius:12px;padding:16px;margin:12px 0}
+.install-step-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:13px}
+.step-num{background:var(--primary);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0}
 @media(max-width:768px){main{margin:16px auto;padding:0 14px}.card{padding:18px}h1{font-size:22px}}
 </style>
 </head>
@@ -86,7 +104,10 @@ video{width:100%;max-height:45vh;border-radius:12px;background:#000;margin:12px 
     <strong>◈ DoIt Innovations</strong>
     <span>ERP ATTENDANCE</span>
   </div>
-  <div id="headerAuth" class="row"></div>
+  <div class="row" style="gap:10px">
+    <button id="headerInstallBtn" onclick="triggerPwaInstall()" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:5px">📲 Download App</button>
+    <div id="headerAuth" class="row"></div>
+  </div>
 </header>
 <main id="app"></main>
 
@@ -96,6 +117,151 @@ const headerAuth=document.querySelector('#headerAuth');
 let adminPassword=sessionStorage.getItem('doit-admin')||'';
 let stream=null;
 let activeMonth=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit'}).format(new Date());
+
+// PWA Service Worker & Install Prompt
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  const b=document.querySelector('#pwaInstallBanner');
+  if(b)b.classList.remove('hidden');
+});
+
+window.addEventListener('appinstalled', ()=>{
+  deferredInstallPrompt=null;
+  document.querySelector('#pwaInstallBanner')?.remove();
+  const btn=document.querySelector('#headerInstallBtn');
+  if(btn)btn.style.display='none';
+});
+
+function installBannerHtml(){
+  const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+  const dismissed=sessionStorage.getItem('pwa-dismissed')==='1';
+  if(isStandalone||dismissed)return '';
+  return \`
+    <div id="pwaInstallBanner" class="install-banner">
+      <div class="row" style="gap:12px">
+        <div class="install-icon">📲</div>
+        <div>
+          <strong>Download to Home Screen (Chrome App)</strong>
+          <p>Install DoIt ERP like an app for instant 1-tap QR attendance scanning.</p>
+        </div>
+      </div>
+      <div class="row" style="gap:8px">
+        <button class="btn-install" onclick="triggerPwaInstall()">Download to Home</button>
+        <button class="btn-dismiss" onclick="dismissInstallBanner()" title="Dismiss">✕</button>
+      </div>
+    </div>
+  \`;
+}
+
+window.dismissInstallBanner=function(){
+  sessionStorage.setItem('pwa-dismissed','1');
+  document.querySelector('#pwaInstallBanner')?.remove();
+};
+
+window.triggerPwaInstall=async function(){
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    try{
+      const choice=await deferredInstallPrompt.userChoice;
+      if(choice.outcome==='accepted'){
+        dismissInstallBanner();
+      }
+    }catch{}
+    deferredInstallPrompt=null;
+  }else{
+    showInstallInstructionsModal();
+  }
+};
+
+window.showInstallInstructionsModal=function(){
+  document.querySelector('#pwaGuideModal')?.remove();
+  const ua=navigator.userAgent||'';
+  const isIos=/iphone|ipad|ipod/i.test(ua);
+  const isAndroid=/android/i.test(ua);
+  
+  const modal=document.createElement('div');
+  modal.className='modal-overlay';
+  modal.id='pwaGuideModal';
+  modal.innerHTML=\`
+    <div class="modal-box" style="max-width:520px">
+      <div class="between" style="margin-bottom:14px">
+        <div class="row" style="gap:10px">
+          <div class="install-icon" style="background:var(--primary-light);color:var(--primary)">📲</div>
+          <div>
+            <h2 style="margin:0;font-size:18px">Download to Home Screen</h2>
+            <p style="margin:2px 0 0;font-size:12px">Install DoIt ERP as a Chrome App on your device</p>
+          </div>
+        </div>
+        <button class="secondary" onclick="document.querySelector('#pwaGuideModal')?.remove()">✕ Close</button>
+      </div>
+
+      <div style="font-size:13px;line-height:1.6;color:var(--ink)">
+        \${isIos ? \`
+          <p style="margin-bottom:10px"><strong>For iPhone &amp; iPad (Safari):</strong></p>
+          <div class="install-steps">
+            <div class="install-step-item">
+              <span class="step-num">1</span>
+              <div>Tap the <strong>Share</strong> button at the bottom of Safari (<span style="font-size:16px">⎙</span> square with up arrow).</div>
+            </div>
+            <div class="install-step-item">
+              <span class="step-num">2</span>
+              <div>Scroll down the options list and tap <strong>"Add to Home Screen"</strong> (➕).</div>
+            </div>
+            <div class="install-step-item">
+              <span class="step-num">3</span>
+              <div>Tap <strong>Add</strong> in the top-right corner. The DoIt ERP app will be placed directly on your phone&#39;s Home screen!</div>
+            </div>
+          </div>
+        \` : isAndroid ? \`
+          <p style="margin-bottom:10px"><strong>For Android (Chrome Browser):</strong></p>
+          <div class="install-steps">
+            <div class="install-step-item">
+              <span class="step-num">1</span>
+              <div>Tap the <strong>three dots menu (⋮)</strong> in the top-right corner of Chrome.</div>
+            </div>
+            <div class="install-step-item">
+              <span class="step-num">2</span>
+              <div>Tap <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</div>
+            </div>
+            <div class="install-step-item">
+              <span class="step-num">3</span>
+              <div>Tap <strong>Install</strong>. DoIt ERP will download onto your Home screen as a standalone app!</div>
+            </div>
+          </div>
+        \` : \`
+          <p style="margin-bottom:10px"><strong>For Desktop (Google Chrome / Edge):</strong></p>
+          <div class="install-steps">
+            <div class="install-step-item">
+              <span class="step-num">1</span>
+              <div>Look at the right side of the address bar at the top (next to the bookmark star ⭐).</div>
+            </div>
+            <div class="install-step-item">
+              <span class="step-num">2</span>
+              <div>Click the <strong>Install DoIt ERP</strong> icon (<span style="font-size:15px">⊕</span> or computer icon).</div>
+            </div>
+            <div class="install-step-item">
+              <span class="step-num">3</span>
+              <div>Click <strong>Install</strong> to add DoIt ERP to your desktop apps and taskbar!</div>
+            </div>
+          </div>
+        \`}
+      </div>
+
+      <div style="text-align:right;margin-top:16px">
+        <button class="btn" onclick="document.querySelector('#pwaGuideModal')?.remove()">Got It!</button>
+      </div>
+    </div>
+  \`;
+  document.body.appendChild(modal);
+};
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const timeStr=t=>t?new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date(t)):'—';
@@ -122,6 +288,7 @@ function loginView(){
   headerAuth.innerHTML='<button class="secondary" id="adminHeaderBtn">Admin Portal</button>';
   document.querySelector('#adminHeaderBtn').onclick=promptAdmin;
   app.innerHTML=\`
+    \${installBannerHtml()}
     <section class="card narrow">
       <div style="text-align:center;margin-bottom:16px">
         <span class="badge present">DOIT INNOVATIONS ERP</span>
@@ -266,6 +433,7 @@ async function employeeView(){
   const todayBadge=isAtWork?'<span class="badge present">● Currently At Work</span>':me.todaySummary?.punches?.length?'<span class="badge in">✓ Completed for Today</span>':'<span class="badge pending">○ Not Checked In Today</span>';
 
   app.innerHTML=\`
+    \${installBannerHtml()}
     <div class="between" style="margin-bottom:18px">
       <div>
         <h1>Welcome, \${esc(me.employee.name)}</h1>
@@ -1147,6 +1315,9 @@ async function buildMonthlyTimesheet(env, employeeId, monthStr){
 }
 
 // ---------------- REQUEST HANDLER ----------------
+const ICON_192_B64 = "iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAEnUlEQVR4nO3d220bQRBEUSVgQJEoAUensBSd/SFZD5oiKdZO13TXHdwAdroPBJhcwg+/fj8R3d2D/QmodQAiKQCRFIBICkAkBSCSAhBJAYikAERSACIpAJEUgEgKQCQFIJICEEkBiKQARFIAIikAkRSASApAJAUgkgIQSQGIpABEUgAiKQCRFIBICkBXenx5tj/DzgHoUo8vz6/Zn2TbAPRt73owdCEAne9ED4a+C0BnOqsHQ2cD0GkX9GDo/wD0pat6MHQSgD66UQ+GPgegt36kB0PvAejpPj0Yeg1A9+vBEIBUPRiKBnSInnBDuYAO1JNsKBTQ4XpiDSUCWqQn01AcoKV6Ag1lASrQk2YoCFCZnihDKYCK9eQYigBk0RNiaD4go54EQ8MB2fWMNzQZkN1NgqGxgOxiQgzNBGS3kmNoICC7kihD0wDZfaQZGgXILiPQ0BxAdhOZhoYAsmuINTQBkN1BsqH2gOwCwg31BmTfPYYaA7JvHUONAdn3jaHGgOybxlBjQPYdY6gxIPt2MdQYkH2vGGoMyL5RDDUGZN8lhhoDsm8RQ40B2fe3Q/YtdAVk39yff8f+JPZd9APkFXP5YGh3QHu6sUuy76UHoBZ0XIzs29kdUC86Fkb2He0LqK+eWEMbAequJ9PQLoBm6Ak0tAWgSXrSDPkBzdMTZcgMaKqeHENOQGXzHQ/IaMgGaLyeEEMeQJVjzQFkMWQAlKMnwVA1oOJpBgIqNlQKqH6UmYAqDdUBytTzegYbKgJkmWA4oBpDFYBc4wNQgaHlgIyzA1CBobWAvIMDUIGhhYDsU3Oz+XLs02gGyD4vANUY4i9Q0bFPo9lfIAx9PvY5rFsx/wqrOFP18DlQ0Zmqh0+ii85UPXwXVnSm6uHbePS0AsT7QMP08EbiQEDF2+SdaPQ0BMSvMmbo4Xdh6OkMiF+mdtfjBzTYUIKeLQCNNBSiZxdAwwzl6NkI0BhDUXr2AjTAUJqe7QC1NhSoZ0dAHT8fqnxg+3YaAGr0XUfxc9r30gbQ5u9+WJ7NvpFmgOzvU/O/9bQHtIOhHbJvoTEgDNnn3x5QsiH75IcAyjRkn/koQGmG7NMeCCjHkH3OYwElGLJPeDig2Ybss40ANNWQfapBgOYZss8zDtAkQ/ZJhgKaYcg+w2hA3Q3Zpwegxobsc9MbAqijIfvEDmkOoF6G7LM6qlGAuhiyT+nApgHa35B9Psc2ENDOhuyTObyZgPY0ZJ/JisYC2s2QfRqLmgxoH0P2OaxrOKAdDNknsLT5gLyG7HdfXQQglyH7rQtKAVRvyH7fmoIAVRqy37SsLEA1hux3rCwO0GpD9tsVlwhonSH7veoLBbTCkP1GlnIBHWvIfhdX0YCOMmS/hbF0QLoh+/N7A9CTYsj+5PYA9BZ67gtAH6HnjgD0JfT8NACdhp4fBaAzoef2AHQ+9NwYgL4NPbcEoEuh52oAuhJ6LgcgkgIQSQGIpABEUgAiKQCRFIBICkAkBSCSAhBJAYikAERSACIpAJEUgEgKQCQFIJICEEkBiKQARFIAIikAkRSASApAJAUgkgIQSQGIpABEUn8BGTD06tDanwcAAAAASUVORK5CYII=";
+const ICON_512_B64 = "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";
+
 async function handle(request,env){
   try{
     const url=new URL(request.url);
@@ -1454,6 +1625,46 @@ async function handle(request,env){
         todayPunchesCount:todayEvents.length,
         recentPunches
       });
+    }
+
+    // PWA Manifest & Assets
+    if(p==='/manifest.json'||p==='/manifest.webmanifest'){
+      return new Response(JSON.stringify({
+        name:'DoIt ERP Attendance',
+        short_name:'DoIt ERP',
+        description:'Enterprise QR Attendance & Timesheet System for DoIt Innovations',
+        start_url:'/',
+        scope:'/',
+        display:'standalone',
+        orientation:'portrait-primary',
+        background_color:'#f4f6f3',
+        theme_color:'#0d3b2e',
+        icons:[
+          {src:'/icon.svg',sizes:'any',type:'image/svg+xml',purpose:'any maskable'},
+          {src:'/icon-192.png',sizes:'192x192',type:'image/png',purpose:'any maskable'},
+          {src:'/icon-512.png',sizes:'512x512',type:'image/png',purpose:'any maskable'}
+        ]
+      }),{headers:{'content-type':'application/manifest+json; charset=utf-8','cache-control':'public, max-age=86400'}});
+    }
+
+    if(p==='/sw.js'){
+      const sw = "const CACHE_NAME='doit-erp-v1';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});";
+      return new Response(sw,{headers:{'content-type':'application/javascript; charset=utf-8','cache-control':'no-cache'}});
+    }
+
+    if(p==='/icon.svg'){
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d3b2e"/><stop offset="100%" stop-color="#06231b"/></linearGradient><linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><rect width="512" height="512" rx="128" fill="url(#g)"/><rect x="8" y="8" width="496" height="496" rx="120" fill="none" stroke="#10b981" stroke-width="8" stroke-opacity="0.3"/><polygon points="256,70 410,224 256,378 102,224" fill="url(#accent)" opacity="0.15"/><polygon points="256,90 390,224 256,358 122,224" fill="none" stroke="#10b981" stroke-width="12" stroke-linejoin="round"/><circle cx="256" cy="224" r="70" fill="#0d3b2e" stroke="#10b981" stroke-width="8"/><polyline points="230,224 250,244 285,204" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><text x="256" y="440" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">DOIT ERP</text><text x="256" y="475" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#10b981" text-anchor="middle" letter-spacing="3">ATTENDANCE</text></svg>';
+      return new Response(svg,{headers:{'content-type':'image/svg+xml; charset=utf-8','cache-control':'public, max-age=604800'}});
+    }
+
+    if(p==='/icon-192.png'){
+      const bin = Uint8Array.from(atob(ICON_192_B64), c => c.charCodeAt(0));
+      return new Response(bin,{headers:{'content-type':'image/png','cache-control':'public, max-age=604800'}});
+    }
+
+    if(p==='/icon-512.png'){
+      const bin = Uint8Array.from(atob(ICON_512_B64), c => c.charCodeAt(0));
+      return new Response(bin,{headers:{'content-type':'image/png','cache-control':'public, max-age=604800'}});
     }
 
     // Serve HTML

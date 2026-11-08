@@ -61,6 +61,22 @@ video{width:100%;max-height:45vh;border-radius:12px;background:#000;margin:12px 
 .tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:16px}
 .tab{background:transparent;color:var(--muted);border:0;padding:8px 14px;font-size:13px;font-weight:600;border-radius:7px;cursor:pointer}
 .tab.active{background:var(--primary-light);color:var(--primary)}
+.timeline{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.timeline-item{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;background:#f8faf9;border:1px solid var(--border);border-radius:10px;gap:12px;flex-wrap:wrap}
+.timeline-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 9px;border-radius:6px;letter-spacing:0.3px}
+.timeline-badge.in{background:var(--success-bg);color:var(--success-ink)}
+.timeline-badge.out{background:var(--danger-bg);color:var(--danger-ink)}
+.punch-pills{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.punch-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+.punch-pill.in{background:#e6f6ec;color:#136237;border:1px solid #c2e8cf}
+.punch-pill.out{background:#fdeeed;color:#a5241b;border:1px solid #f8c9c6}
+.flow-arrow{color:#9aa9a1;font-size:11px;font-weight:bold}
+.details-toggle{background:#f1f5f3;border:1px solid #d2ded7;color:#284337;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer}
+.details-toggle:hover{background:#e3ede7}
+.breakdown-row{background:#fbfdfc!important}
+.breakdown-box{padding:10px 14px;border:1px dashed #c8d8ce;border-radius:8px;background:#ffffff;margin:4px 0}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,25,18,0.6);display:flex;align-items:center;justify-content:center;z-index:999;padding:16px}
+.modal-box{background:#fff;border-radius:16px;max-width:850px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 12px 40px rgba(0,0,0,0.2)}
 @media(max-width:768px){main{margin:16px auto;padding:0 14px}.card{padding:18px}h1{font-size:22px}}
 </style>
 </head>
@@ -82,7 +98,11 @@ let stream=null;
 let activeMonth=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit'}).format(new Date());
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const timeStr=t=>t?new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'—';
+const timeStr=t=>t?new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date(t)):'—';
+window.toggleDayBreakdown=function(dayNum){
+  const el=document.querySelector('#breakdown-'+dayNum);
+  if(el)el.classList.toggle('hidden');
+};
 
 async function api(path,opts={}){
   const r=await fetch(path,{...opts,headers:{'content-type':'application/json',...(opts.headers||{})}});
@@ -261,8 +281,8 @@ async function employeeView(){
           <h2>Today&#39;s Attendance Punch</h2>
           <p>Scan the office entrance QR poster to record arrival or departure with GPS verification.</p>
         </div>
-        <button id="openScannerBtn" style="min-width:180px">
-          \${isAtWork?'Check Out (Scan QR)':'Check In (Scan QR)'}
+        <button id="openScannerBtn" style="min-width:200px">
+          \${isAtWork?'Check Out / Stepped Outside (Scan QR)':'Check In / Arrived (Scan QR)'}
         </button>
       </div>
       <div id="scannerBox" class="hidden" style="margin-top:16px">
@@ -278,24 +298,71 @@ async function employeeView(){
         <div class="stat-box">
           <div class="title">First In (Arrival)</div>
           <div class="val" style="font-size:20px">\${timeStr(me.todaySummary?.firstIn)}</div>
-          <div class="sub">Today&#39;s entrance punch</div>
+          <div class="sub">Today&#39;s first entrance</div>
         </div>
         <div class="stat-box">
           <div class="title">Last Out (Departure)</div>
           <div class="val" style="font-size:20px">\${timeStr(me.todaySummary?.lastOut)}</div>
-          <div class="sub">Today&#39;s exit punch</div>
+          <div class="sub">Today&#39;s latest exit</div>
         </div>
         <div class="stat-box">
-          <div class="title">Hours Logged Today</div>
-          <div class="val" style="font-size:20px">\${me.todaySummary?.hoursWorked||'0h 0m'}</div>
-          <div class="sub">Effective on-site time</div>
+          <div class="title">Time In Office</div>
+          <div class="val" style="font-size:20px;color:var(--success-ink)">\${me.todaySummary?.hoursWorked||'0h 0m'}</div>
+          <div class="sub">Active on-site duration</div>
         </div>
         <div class="stat-box">
-          <div class="title">Total Punches Today</div>
-          <div class="val" style="font-size:20px">\${me.todaySummary?.punches?.length||0}</div>
-          <div class="sub">Arrivals & departures</div>
+          <div class="title">Outside / Breaks</div>
+          <div class="val" style="font-size:20px;color:var(--muted)">\${me.todaySummary?.outsideDuration||'0m'}</div>
+          <div class="sub">Time spent out of office</div>
         </div>
       </div>
+    </section>
+
+    <!-- Today's Movement & Punch Timeline -->
+    <section class="card">
+      <div class="between" style="margin-bottom:12px">
+        <div>
+          <h2>Today&#39;s Movement Timeline (When Came In / Went Outside)</h2>
+          <p>Real-time log of every time you entered the office or stepped outside today.</p>
+        </div>
+        <div>
+          <span class="badge \${isAtWork?'present':'absent'}">
+            \${isAtWork?'🟢 Currently In Office':'🔴 Currently Outside / Away'}
+          </span>
+        </div>
+      </div>
+
+      \${me.todaySummary?.punches && me.todaySummary.punches.length > 0 ? \`
+        <div class="timeline">
+          \${me.todaySummary.punches.map((p, idx)=>\`
+            <div class="timeline-item">
+              <div class="row" style="gap:10px">
+                <span class="timeline-badge \${p.kind}">
+                  \${p.kind==='in'?'🟢 CAME IN':'🔴 WENT OUTSIDE'}
+                </span>
+                <strong style="font-size:15px;letter-spacing:0.3px">\${p.timeFormatted}</strong>
+                <span style="font-size:12px;color:var(--muted)">Punch #\${idx + 1}</span>
+              </div>
+              <div style="font-size:13px;font-weight:600;color:\${p.kind==='in'?'var(--success-ink)':'var(--danger-ink)'}">
+                \${esc(p.intervalText)}
+              </div>
+            </div>
+          \`).join('')}
+        </div>
+        <div class="between" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+          <div style="font-size:13px;color:var(--muted)">
+            Total In Office: <strong style="color:var(--ink)">\${me.todaySummary.hoursWorked}</strong> · 
+            Outside / Breaks: <strong style="color:var(--ink)">\${me.todaySummary.outsideDuration}</strong>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">
+            Total Punches Today: <strong>\${me.todaySummary.punches.length}</strong>
+          </div>
+        </div>
+      \` : \`
+        <div style="text-align:center;padding:22px 12px;color:var(--muted);font-size:14px">
+          No punches recorded yet today. Scan the entrance poster to record your arrival.
+        </div>
+      \`}
     </section>
 
     <!-- Monthly ERP Sheet & History -->
@@ -343,9 +410,10 @@ async function employeeView(){
               <th>Date</th>
               <th>Day</th>
               <th>Status</th>
-              <th>First In</th>
-              <th>Last Out</th>
-              <th>Working Hours</th>
+              <th>Movements &amp; Punches (When Came / Went Out)</th>
+              <th>In Office</th>
+              <th>Outside</th>
+              <th>Breakdown</th>
             </tr>
           </thead>
           <tbody>
@@ -358,10 +426,55 @@ async function employeeView(){
                     \${day.status==='Present'?'✓ Present':day.status==='Absent'?'✕ Absent':day.status==='Weekend'?'Weekend':'—'}
                   </span>
                 </td>
-                <td>\${timeStr(day.firstIn)}</td>
-                <td>\${timeStr(day.lastOut)}</td>
-                <td>\${day.duration||'—'}</td>
+                <td>
+                  \${day.punches && day.punches.length>0 ? \`
+                    <div class="punch-pills">
+                      \${day.punches.map(p=>\`
+                        <span class="punch-pill \${p.kind}">
+                          \${p.kind==='in'?'🟢 IN':'🔴 OUT'} \${p.timeFormatted}
+                        </span>
+                      \`).join('<span class="flow-arrow">➔</span>')}
+                    </div>
+                  \` : (day.status==='Absent'?'<span style="color:var(--danger-ink);font-size:12px">✕ No Punches</span>':(day.status==='Weekend'?'<span style="color:var(--muted);font-size:12px">Weekend</span>':'—'))}
+                </td>
+                <td style="font-weight:600">\${day.duration||'—'}</td>
+                <td style="color:var(--muted)">\${day.outsideDuration||'0m'}</td>
+                <td>
+                  \${day.punches && day.punches.length>0 ? \`
+                    <button class="details-toggle" onclick="toggleDayBreakdown('\${day.dayNumber}')">
+                      👁 Details (\${day.punches.length})
+                    </button>
+                  \` : '—'}
+                </td>
               </tr>
+              \${day.punches && day.punches.length>0 ? \`
+                <tr id="breakdown-\${day.dayNumber}" class="breakdown-row hidden">
+                  <td colspan="7" style="padding:10px 16px">
+                    <div class="breakdown-box">
+                      <div class="between" style="margin-bottom:8px">
+                        <strong style="font-size:13px">Exact Punch Log for \${esc(day.date)} (\${esc(day.dayOfWeek)})</strong>
+                        <span style="font-size:12px;color:var(--muted)">In Office: <strong style="color:var(--ink)">\${day.duration}</strong> · Outside/Break: <strong style="color:var(--ink)">\${day.outsideDuration}</strong></span>
+                      </div>
+                      <div class="timeline" style="margin-top:6px;gap:6px">
+                        \${day.punches.map((p, idx)=>\`
+                          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f4f7f5;border-radius:6px;font-size:12px">
+                            <div class="row" style="gap:8px">
+                              <span class="timeline-badge \${p.kind}" style="padding:2px 7px;font-size:11px">
+                                \${p.kind==='in'?'🟢 CAME IN':'🔴 WENT OUTSIDE'}
+                              </span>
+                              <strong>\${p.timeFormatted}</strong>
+                              <span style="color:var(--muted)">Punch #\${idx + 1}</span>
+                            </div>
+                            <div style="font-weight:600;color:\${p.kind==='in'?'var(--success-ink)':'var(--danger-ink)'}">
+                              \${esc(p.intervalText)}
+                            </div>
+                          </div>
+                        \`).join('')}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              \` : ''}
             \`).join('')}
           </tbody>
         </table>
@@ -591,7 +704,8 @@ async function adminPortalView(){
                   <td style="color:var(--success-ink);font-weight:700">\${e.monthStats.presentDays} d</td>
                   <td style="color:var(--danger-ink);font-weight:700">\${e.monthStats.absentDays} d</td>
                   <td>\${e.monthStats.totalHours} hrs</td>
-                  <td>
+                  <td class="row" style="gap:6px">
+                    <button class="secondary" style="padding:4px 9px;font-size:11px" onclick="viewEmpTimesheet('\${e.id}','\${esc(e.name)}')">📅 View Activity</button>
                     <button class="secondary" style="padding:4px 9px;font-size:11px" onclick="resetEmpPassword('\${e.id}','\${esc(e.name)}')">Reset Password</button>
                   </td>
                 </tr>
@@ -620,7 +734,7 @@ async function adminPortalView(){
                 <tr>
                   <td><strong>\${esc(p.name)}</strong> (\${esc(p.emp_code||'EMP')})</td>
                   <td>\${new Date(p.time).toLocaleString()}</td>
-                  <td><span class="badge \${p.kind==='in'?'present':'in'}">\${p.kind==='in'?'CHECK IN':'CHECK OUT'}</span></td>
+                  <td><span class="badge \${p.kind==='in'?'present':'absent'}">\${p.kind==='in'?'🟢 CAME IN (Arrival)':'🔴 WENT OUTSIDE (Departure)'}</span></td>
                   <td>\${p.distance_meters!=null?p.distance_meters+' m':'—'}</td>
                   <td><span class="badge present">✓ \${esc(p.status)}</span></td>
                 </tr>
@@ -705,6 +819,89 @@ window.resetEmpPassword=async(empId,empName)=>{
   }
 };
 
+window.viewEmpTimesheet=async(empId,empName)=>{
+  try{
+    const d=await api('/api/admin/employees/timesheet?employeeId='+encodeURIComponent(empId)+'&month='+encodeURIComponent(activeMonth),{
+      headers:{authorization:'Basic '+btoa('admin:'+adminPassword)}
+    });
+    const modal=document.createElement('div');
+    modal.className='modal-overlay';
+    modal.id='empTimesheetModal';
+    modal.innerHTML=\`
+      <div class="modal-box">
+        <div class="between" style="margin-bottom:14px">
+          <div>
+            <h2 style="margin:0">\${esc(d.employee.name)} (\${esc(d.employee.emp_code||'EMP')})</h2>
+            <p style="margin:2px 0 0">\${esc(d.employee.role)} · \${esc(d.employee.department)} Department · Month: \${esc(d.timesheet.monthSummary.month)}</p>
+          </div>
+          <button class="secondary" onclick="document.querySelector('#empTimesheetModal')?.remove()">✕ Close</button>
+        </div>
+        <div class="grid-4" style="margin-bottom:16px">
+          <div class="stat-box" style="padding:12px">
+            <div class="title">Days Present</div>
+            <div class="val" style="font-size:22px;color:var(--success-ink)">\${d.timesheet.monthSummary.presentDays} d</div>
+          </div>
+          <div class="stat-box" style="padding:12px">
+            <div class="title">Days Absent</div>
+            <div class="val" style="font-size:22px;color:var(--danger-ink)">\${d.timesheet.monthSummary.absentDays} d</div>
+          </div>
+          <div class="stat-box" style="padding:12px">
+            <div class="title">Time In Office</div>
+            <div class="val" style="font-size:22px">\${d.timesheet.monthSummary.totalHours} hrs</div>
+          </div>
+          <div class="stat-box" style="padding:12px">
+            <div class="title">Attendance Rate</div>
+            <div class="val" style="font-size:22px">\${d.timesheet.monthSummary.attendanceRate}%</div>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Status</th>
+                <th>Movement &amp; Punches (When Came / Went Out)</th>
+                <th>In Office</th>
+                <th>Outside</th>
+              </tr>
+            </thead>
+            <tbody>
+              \${d.timesheet.calendar.map(day=>\`
+                <tr>
+                  <td><strong>\${esc(day.date)}</strong></td>
+                  <td>\${esc(day.dayOfWeek)}</td>
+                  <td>
+                    <span class="badge \${day.status.toLowerCase()}">
+                      \${day.status==='Present'?'✓ Present':day.status==='Absent'?'✕ Absent':day.status==='Weekend'?'Weekend':'—'}
+                    </span>
+                  </td>
+                  <td>
+                    \${day.punches && day.punches.length>0 ? \`
+                      <div class="punch-pills">
+                        \${day.punches.map(p=>\`
+                          <span class="punch-pill \${p.kind}">
+                            \${p.kind==='in'?'🟢 IN':'🔴 OUT'} \${p.timeFormatted}
+                          </span>
+                        \`).join('<span class="flow-arrow">➔</span>')}
+                      </div>
+                    \` : (day.status==='Absent'?'<span style="color:var(--danger-ink);font-size:12px">✕ No Punches</span>':(day.status==='Weekend'?'<span style="color:var(--muted);font-size:12px">Weekend</span>':'—'))}
+                  </td>
+                  <td style="font-weight:600">\${day.duration||'—'}</td>
+                  <td style="color:var(--muted)">\${day.outsideDuration||'0m'}</td>
+                </tr>
+              \`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    \`;
+    document.body.appendChild(modal);
+  }catch(err){
+    alert('Failed to load timesheet: '+err.message);
+  }
+};
+
 // ---------------- ROUTER ----------------
 if(location.pathname==='/poster'){
   api('/api/poster').then(d=>{
@@ -771,6 +968,96 @@ async function requireAdmin(request,env){
   if(!env.ADMIN_PASSWORD||supplied!==env.ADMIN_PASSWORD)throw Error('Admin password incorrect');
 }
 
+function formatPunchTime(t){
+  if(!t)return '—';
+  return new Intl.DateTimeFormat('en-IN',{
+    timeZone:'Asia/Kolkata',
+    hour:'2-digit',
+    minute:'2-digit',
+    hour12:true
+  }).format(new Date(t));
+}
+
+function processDayPunches(punches, dateStr, isToday){
+  let onSiteMins=0;
+  let outsideMins=0;
+  const processed=[];
+
+  let currentInTime=null;
+  let lastOutTime=null;
+
+  for(let i=0; i<punches.length; i++){
+    const p=punches[i];
+    let intervalText='';
+
+    if(p.kind==='in'){
+      currentInTime=p.time;
+      if(lastOutTime && p.time>lastOutTime){
+        const breakM=Math.round((p.time-lastOutTime)/60000);
+        outsideMins+=breakM;
+        const h=Math.floor(breakM/60);
+        const m=breakM%60;
+        intervalText=(h>0?h+'h ':'')+(m+'m')+' outside (break)';
+      }else{
+        intervalText=i===0?'Arrived / Started workday':'Came back in';
+      }
+    }else{
+      lastOutTime=p.time;
+      if(currentInTime && p.time>currentInTime){
+        const stayM=Math.round((p.time-currentInTime)/60000);
+        onSiteMins+=stayM;
+        const h=Math.floor(stayM/60);
+        const m=stayM%60;
+        intervalText=(h>0?h+'h ':'')+(m+'m')+' on-site';
+        currentInTime=null;
+      }else{
+        intervalText='Stepped outside';
+      }
+    }
+
+    processed.push({
+      id:p.id,
+      kind:p.kind,
+      label:p.kind==='in'?'Came In':'Went Outside',
+      time:p.time,
+      timeFormatted:formatPunchTime(p.time),
+      intervalText
+    });
+  }
+
+  let isInProgress=false;
+  if(isToday && punches.length>0 && punches[punches.length-1].kind==='in'){
+    isInProgress=true;
+    const currentStayM=Math.max(0, Math.round((Date.now()-punches[punches.length-1].time)/60000));
+    onSiteMins+=currentStayM;
+  }
+
+  const inPunches=punches.filter(p=>p.kind==='in');
+  const outPunches=punches.filter(p=>p.kind==='out');
+  const firstIn=inPunches.length?inPunches[0].time:(punches[0]?.time||null);
+  const lastOut=outPunches.length?outPunches[outPunches.length-1].time:null;
+
+  const onSiteH=Math.floor(onSiteMins/60);
+  const onSiteRemM=onSiteMins%60;
+  const onSiteDuration=(onSiteH>0?onSiteH+'h ':'')+(onSiteRemM+'m')+(isInProgress?' (in progress)':'');
+
+  const outsideH=Math.floor(outsideMins/60);
+  const outsideRemM=outsideMins%60;
+  const outsideDuration=outsideMins>0?((outsideH>0?outsideH+'h ':'')+(outsideRemM+'m')):'0m';
+
+  return {
+    punches:processed,
+    firstIn,
+    lastOut,
+    onSiteMins,
+    outsideMins,
+    onSiteDuration:onSiteMins>0?onSiteDuration:'—',
+    outsideDuration,
+    punchesCount:punches.length,
+    currentState:punches.length>0?punches[punches.length-1].kind:'none'
+  };
+}
+
 // Compute calendar & statistics for a given employee & month (e.g. '2026-11')
 async function buildMonthlyTimesheet(env, employeeId, monthStr){
   const today=todayStr();
@@ -808,27 +1095,13 @@ async function buildMonthlyTimesheet(env, employeeId, monthStr){
 
     const punches=dayMap[dateStr]||[];
     let status='Upcoming';
-    let firstIn=null;
-    let lastOut=null;
-    let durationStr='';
+
+    const dayStats=processDayPunches(punches, dateStr, dateStr===today);
 
     if(punches.length>0){
       status='Present';
       presentDays++;
-      const inPunches=punches.filter(p=>p.kind==='in');
-      const outPunches=punches.filter(p=>p.kind==='out');
-      firstIn=inPunches[0]?.time||punches[0].time;
-      lastOut=outPunches.length?outPunches[outPunches.length-1].time:null;
-
-      if(firstIn && lastOut && lastOut>firstIn){
-        const diffMins=Math.round((lastOut-firstIn)/60000);
-        totalMinutesWorked+=diffMins;
-        const hrs=Math.floor(diffMins/60);
-        const mins=diffMins%60;
-        durationStr=`${hrs}h ${mins}m`;
-      }else if(firstIn){
-        durationStr='In progress';
-      }
+      totalMinutesWorked+=dayStats.onSiteMins;
     }else{
       if(isWeekend){
         status='Weekend';
@@ -848,10 +1121,12 @@ async function buildMonthlyTimesheet(env, employeeId, monthStr){
       dayOfWeek:dayOfWeekStr,
       isWeekend,
       status,
-      firstIn,
-      lastOut,
-      duration:durationStr,
-      punchesCount:punches.length
+      firstIn:dayStats.firstIn,
+      lastOut:dayStats.lastOut,
+      duration:dayStats.onSiteDuration!=='—'?dayStats.onSiteDuration:(status==='Present'?'Present':'—'),
+      outsideDuration:dayStats.outsideDuration,
+      punchesCount:dayStats.punchesCount,
+      punches:dayStats.punches
     });
   }
 
@@ -974,32 +1249,19 @@ async function handle(request,env){
         'SELECT id,kind,time,status FROM attendance_events WHERE employee_id=? AND day=? ORDER BY time ASC'
       ).bind(emp.id,today).all()).results;
 
-      const lastPunch=todayPunches[todayPunches.length-1]||null;
-      const inPunches=todayPunches.filter(x=>x.kind==='in');
-      const outPunches=todayPunches.filter(x=>x.kind==='out');
-      const firstIn=inPunches[0]?.time||null;
-      const lastOut=outPunches.length?outPunches[outPunches.length-1].time:null;
-
-      let hoursWorked='0h 0m';
-      if(firstIn && lastOut && lastOut>firstIn){
-        const m=Math.round((lastOut-firstIn)/60000);
-        hoursWorked=`${Math.floor(m/60)}h ${m%60}m`;
-      }else if(firstIn){
-        const m=Math.round((Date.now()-firstIn)/60000);
-        hoursWorked=`${Math.floor(m/60)}h ${m%60}m (in progress)`;
-      }
-
+      const todayStats=processDayPunches(todayPunches, today, true);
       const timesheet=await buildMonthlyTimesheet(env, emp.id, month);
 
       return json({
         employee:emp,
         todaySummary:{
           date:today,
-          currentState:lastPunch?.kind==='in'?'in':'out',
-          firstIn,
-          lastOut,
-          hoursWorked,
-          punches:todayPunches
+          currentState:todayStats.currentState,
+          firstIn:todayStats.firstIn,
+          lastOut:todayStats.lastOut,
+          hoursWorked:todayStats.onSiteDuration!=='—'?todayStats.onSiteDuration:'0h 0m',
+          outsideDuration:todayStats.outsideDuration,
+          punches:todayStats.punches
         },
         calendar:timesheet.calendar,
         monthSummary:timesheet.monthSummary
@@ -1144,6 +1406,16 @@ async function handle(request,env){
 
       await env.DB.prepare('UPDATE employees SET password_salt=?, password_hash=? WHERE id=?').bind(salt,hash,emp.id).run();
       return json({ok:true,id:emp.id,name:emp.name,emp_code:emp.emp_code,username:emp.username,newPassword});
+    }
+
+    // Admin Employee Monthly Timesheet & Punch Breakdown
+    if(p==='/api/admin/employees/timesheet'&&method==='GET'){
+      const empId=url.searchParams.get('employeeId');
+      const month=url.searchParams.get('month')||todayStr().slice(0,7);
+      const emp=await env.DB.prepare('SELECT id,emp_code,username,name,role,department FROM employees WHERE id=?').bind(empId).first();
+      if(!emp)return json({error:'Employee not found.'},404);
+      const timesheet=await buildMonthlyTimesheet(env, emp.id, month);
+      return json({employee:emp, timesheet});
     }
 
     // Admin ERP Dashboard & Monthly Reports

@@ -454,7 +454,7 @@ async function employeeView(){
         </button>
       </div>
       <div id="scannerBox" class="hidden" style="margin-top:16px">
-        <video id="scannerVideo" playsinline></video>
+        <video id="scannerVideo" playsinline autoplay muted></video>
         <div class="row">
           <button class="secondary" id="closeScannerBtn">Cancel Scanner</button>
           <span style="font-size:12px;color:var(--muted)">Ensure camera & location access are enabled.</span>
@@ -658,32 +658,68 @@ async function employeeView(){
   };
 }
 
-// ---------------- CAMERA SCANNER ----------------
+// ---------------- CAMERA SCANNER (UNIVERSAL IPHONE & ANDROID) ----------------
+async function loadQrDetector(){
+  if('BarcodeDetector' in window){
+    return new BarcodeDetector({formats:['qr_code']});
+  }
+  if(!window.jsQR){
+    await new Promise(res=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+      s.onload=res;
+      s.onerror=res;
+      document.head.appendChild(s);
+    });
+  }
+  return null;
+}
+
 async function startScanner(){
   try{
-    if(!('BarcodeDetector' in window)){
-      throw Error('Camera barcode detection is not supported in this browser. Please use Chrome or Edge on mobile.');
-    }
-    const detector=new BarcodeDetector({formats:['qr_code']});
+    const detector=await loadQrDetector();
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
     const video=document.querySelector('#scannerVideo');
+    video.setAttribute('playsinline','true');
+    video.setAttribute('autoplay','true');
+    video.setAttribute('muted','true');
+    video.muted=true;
     video.srcObject=stream;
     await video.play();
     document.querySelector('#scannerBox').classList.remove('hidden');
 
+    let canvas=null;
+    let ctx=null;
+
     const tick=async()=>{
       if(!stream)return;
       try{
-        const codes=await detector.detect(video);
-        if(codes.length){
+        let rawCode=null;
+        if(detector){
+          const codes=await detector.detect(video);
+          if(codes.length)rawCode=codes[0].rawValue;
+        }else if(window.jsQR && video.videoWidth>0){
+          if(!canvas){
+            canvas=document.createElement('canvas');
+            ctx=canvas.getContext('2d',{willReadFrequently:true});
+          }
+          canvas.width=video.videoWidth;
+          canvas.height=video.videoHeight;
+          ctx.drawImage(video,0,0,canvas.width,canvas.height);
+          const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+          const qr=window.jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'dontInvert'});
+          if(qr && qr.data)rawCode=qr.data;
+        }
+
+        if(rawCode){
           stopScanner();
-          msg('#scanMsg','Verifying office GPS location...','');
+          msg('#scanMsg','Verifying office GPS presence...','');
           const loc=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(
             p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy}),
-            err=>reject(Error('Location access required: '+err.message)),
+            err=>reject(Error('GPS permission required: '+err.message)),
             {enableHighAccuracy:true,timeout:12000}
           ));
-          const res=await post('/api/scan',{qrCode:codes[0].rawValue,location:loc});
+          const res=await post('/api/scan',{qrCode:rawCode,location:loc});
           msg('#scanMsg',res.message,'success');
           setTimeout(()=>location.reload(),1400);
           return;

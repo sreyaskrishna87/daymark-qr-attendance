@@ -1,4 +1,4 @@
-name = "doit-attendance"
+name = "doit-erp"
 main = "worker/index.js"
 compatibility_date = "2024-04-01"
 
@@ -7,5 +7,5 @@ OFFICE_ID = "DOIT-HQ"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "daymark-attendance-db"
-database_id = "0f7f1414-77d3-4b5d-8dde-664f64ca85e2"
+database_name = "doit-erp-db"
+database_id = "f34d3a6d-d18c-471f-a3ab-7a6277d88710"

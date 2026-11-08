@@ -1,39 +1,1029 @@
 const enc = new TextEncoder();
-const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#143c32"><title>DoIt Innovations · Attendance</title><style>
-:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#142a25;background:#f5f5ef;font-synthesis:none}*{box-sizing:border-box}body{margin:0}header{background:#143c32;color:#fff;padding:18px max(22px,calc((100vw - 1080px)/2));display:flex;align-items:center;justify-content:space-between}header strong{font-size:20px;letter-spacing:.2px}header small{color:#c0d2c8}main{max-width:1080px;margin:36px auto;padding:0 20px}.card{background:#fff;border:1px solid #e4e7df;border-radius:18px;padding:24px;box-shadow:0 8px 30px #1c3d2910;margin:16px 0}.narrow{max-width:460px;margin:9vh auto}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}h1{font-size:32px;letter-spacing:-.8px;margin:0 0 8px}h2{font-size:19px;margin:0 0 16px}p{color:#5c6b63;line-height:1.55}label{display:block;font-size:13px;font-weight:650;margin:12px 0 6px}input{width:100%;padding:12px;border:1px solid #cad3cb;border-radius:10px;font:inherit;background:#fff}button,.button{border:0;border-radius:10px;background:#17634e;color:#fff;font:600 14px inherit;padding:12px 16px;cursor:pointer}button.secondary{background:#eef3ee;color:#174b3a}button.danger{background:#9a3427}.muted{color:#718077;font-size:13px}.stat{font-size:28px;font-weight:700}.pill{display:inline-block;border-radius:99px;padding:5px 10px;background:#e6f1e9;color:#17634e;font-size:12px;font-weight:700}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #edf0eb;font-size:14px}.hidden{display:none!important}.notice{padding:12px;border-radius:10px;background:#f3f5ed;color:#40534a;margin:12px 0}.success{background:#e7f4e9;color:#17603f}.error{background:#fff0ec;color:#942e21}video{width:100%;max-height:50vh;border-radius:12px;background:#111}a{color:#17634e}.right{margin-left:auto}dialog{width:min(520px,94vw);border:0;border-radius:18px;padding:22px;box-shadow:0 20px 70px #0004}dialog::backdrop{background:#10231dbb}@media(max-width:600px){main{margin:20px auto}.card{padding:18px}h1{font-size:27px}}
-</style></head><body><header><strong>◈ DoIt Innovations</strong><small>Team Attendance</small></header><main id="app"></main><script>
-const app=document.querySelector('#app');let adminPassword=sessionStorage.getItem('doit-admin')||sessionStorage.getItem('dm-manager')||'';let stream=null;const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const date=t=>new Date(t).toLocaleString();
-async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{'content-type':'application/json',...(opts.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||'Request failed');return d}const post=(path,data)=>api(path,{method:'POST',body:JSON.stringify(data)});
-function msg(s,cls=''){let n=document.querySelector('#msg');if(n){n.className='notice '+cls;n.textContent=s;n.classList.remove('hidden')}}
-function login(){app.innerHTML='<section class="card narrow"><span class="pill">EMPLOYEE SIGN IN</span><h1 style="margin-top:18px">Welcome back</h1><p>Sign in to view your attendance and record your arrival or departure.</p><form id="login"><label>Username</label><input name="username" autocomplete="username" required><label>Password</label><input name="password" type="password" autocomplete="current-password" required><div id="msg" class="notice hidden"></div><button style="width:100%;margin-top:18px">Sign in</button></form><p class="muted">Ask your admin for your username and password.</p><hr style="border:0;border-top:1px solid #edf0eb;margin:22px 0"><button class="secondary" id="adminBtn">Admin sign in</button></section>';document.querySelector('#login').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);try{await post('/api/login',{username:f.get('username'),password:f.get('password')});location.reload()}catch(x){msg(x.message,'error')}};document.querySelector('#adminBtn').onclick=()=>{adminPassword=prompt('Admin password');if(adminPassword){sessionStorage.setItem('doit-admin',adminPassword);adminPortal()}}}
-async function employeeView(){let d;try{d=await api('/api/me')}catch{login();return}const member=d.employee||d.worker;app.innerHTML='<div class="row"><div><span class="pill">YOUR ATTENDANCE</span><h1 style="margin-top:12px">Hello, '+esc(member.name)+'</h1><p>'+esc(member.role||'Team member')+'</p></div><button class="secondary right" id="logout">Sign out</button></div><section class="grid"><div class="card"><div class="muted">TODAY&#39;S STATUS</div><div class="stat" style="margin:10px 0">'+(d.currentState==='in'?'At work':'Not checked in')+'</div><div class="muted">'+(d.lastEvent?esc(date(d.lastEvent.time)):'No scans today')+'</div></div><div class="card"><div class="muted">THIS MONTH</div><div class="stat" style="margin:10px 0">'+d.monthCount+'</div><div class="muted">attendance events recorded</div></div></section><section class="card"><div class="row"><div><h2>Check in or out</h2><p>Scan the office QR poster when you arrive or leave.</p></div><button id="scan" class="right">Open scanner</button></div><div id="scanner" class="hidden"><video id="video" playsinline></video><div class="row" style="margin-top:10px"><button class="secondary" id="stop">Close scanner</button><span class="muted">Allow camera and location access.</span></div></div><div id="msg" class="notice hidden"></div></section><section class="card"><h2>Your recent attendance</h2><table><thead><tr><th>Date</th><th>Time</th><th>Event</th><th>Check</th></tr></thead><tbody>'+d.events.map(e=>'<tr><td>'+esc(new Date(e.time).toLocaleDateString())+'</td><td>'+esc(new Date(e.time).toLocaleTimeString())+'</td><td><span class="pill">'+(e.kind==='in'?'CHECK IN':'CHECK OUT')+'</span></td><td>'+esc(e.status)+'</td></tr>').join('')+'</tbody></table>'+(d.events.length?'':'<p>No attendance records yet.</p>')+'</section>';document.querySelector('#logout').onclick=async()=>{await post('/api/logout',{});location.reload()};document.querySelector('#scan').onclick=startScanner;document.querySelector('#stop').onclick=stopScanner}
-async function startScanner(){try{if(!('BarcodeDetector'in window))throw Error('This browser does not support camera QR scanning. Try Chrome on Android.');const detector=new BarcodeDetector({formats:['qr_code']});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});const v=document.querySelector('#video');v.srcObject=stream;await v.play();document.querySelector('#scanner').classList.remove('hidden');const tick=async()=>{if(!stream)return;try{const codes=await detector.detect(v);if(codes.length){stopScanner();const loc=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy}),e=>reject(Error('Location is required: '+e.message)),{enableHighAccuracy:true,timeout:12000}));const out=await post('/api/scan',{qrCode:codes[0].rawValue,location:loc});msg(out.message,'success');setTimeout(()=>location.reload(),1200);return}}catch(e){if(e.message.startsWith('Location'))msg(e.message,'error');else if(e.message!=='')msg(e.message,'error')}requestAnimationFrame(tick)};tick()}catch(e){msg(e.message,'error')}}function stopScanner(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}const s=document.querySelector('#scanner');if(s)s.classList.add('hidden')}
-async function adminPortal(){if(!adminPassword){login();return}try{const [d,s]=await Promise.all([api('/api/admin/dashboard',{headers:{authorization:'Basic '+btoa('admin:'+adminPassword)}}),api('/api/admin/settings',{headers:{authorization:'Basic '+btoa('admin:'+adminPassword)}})]);window._settings=s;const members=d.employees||d.workers||[];app.innerHTML='<div class="row"><div><span class="pill">ADMIN</span><h1 style="margin-top:12px">Team Attendance</h1><p>Manage your team and review today&#39;s scans.</p></div><button class="secondary right" id="back">Employee view</button></div><section class="grid"><div class="card"><div class="muted">CHECKED IN</div><div class="stat">'+d.checkedIn+'</div></div><div class="card"><div class="muted">TEAM MEMBERS</div><div class="stat">'+d.totalWorkers+'</div></div><div class="card"><div class="muted">TODAY&#39;S SCANS</div><div class="stat">'+d.todayCount+'</div></div></section><section class="grid"><div class="card"><h2>Add an employee</h2><form id="add"><label>Employee name</label><input name="name" required><label>Role (optional)</label><input name="role"><button style="margin-top:15px">Create employee account</button></form><p class="muted">A temporary password will appear once. Share it privately.</p><div id="creds" class="notice hidden"></div><div id="addmsg" class="notice hidden"></div></div><div class="card"><h2>Printed poster QR</h2><p>Print once and place it at the office entrance. Location checks verify employees are on-site.</p><a href="/poster" target="_blank">Open printable poster →</a><h2 style="margin-top:24px">Office location</h2><p class="muted">Set the coordinates where employees scan.</p><form id="settings"><label>Office name</label><input name="officeName" value="'+esc(s.officeName)+'"><div class="row"><div style="flex:1"><label>Latitude</label><input name="officeLat" type="number" step="any" value="'+esc(s.officeLat??'')+'" required></div><div style="flex:1"><label>Longitude</label><input name="officeLng" type="number" step="any" value="'+esc(s.officeLng??'')+'" required></div></div><label>Allowed radius (metres)</label><input name="radius" type="number" value="'+esc(s.radius)+'"><button style="margin-top:15px">Save location</button></form><div id="setmsg" class="notice hidden"></div></div></section><section class="card"><h2>Employees</h2><table><thead><tr><th>Username</th><th>Name</th><th>Today</th><th>Account</th></tr></thead><tbody>'+members.map(w=>'<tr><td>'+esc(w.username)+'</td><td>'+esc(w.name)+'<div class="muted">'+esc(w.role)+'</div></td><td>'+esc(w.state)+'</td><td>'+ (w.active?'Active':'Disabled')+'</td></tr>').join('')+'</tbody></table></section><section class="card"><h2>Recent scans</h2><table><thead><tr><th>Employee</th><th>Time</th><th>Event</th><th>Distance</th><th>Status</th></tr></thead><tbody>'+d.recent.map(e=>'<tr><td>'+esc(e.name)+'</td><td>'+esc(date(e.time))+'</td><td>'+esc(e.kind)+'</td><td>'+esc(e.distance_meters==null?'—':e.distance_meters+' m')+'</td><td>'+esc(e.status)+'</td></tr>').join('')+'</tbody></table></section>';document.querySelector('#back').onclick=()=>{adminPassword='';sessionStorage.removeItem('doit-admin');sessionStorage.removeItem('dm-manager');login()};document.querySelector('#add').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);try{const r=await api('/api/admin/employees',{method:'POST',headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},body:JSON.stringify({name:f.get('name'),role:f.get('role')})});document.querySelector('#creds').innerHTML='<b>Give these credentials to '+esc(r.name)+':</b><br>Username: <code>'+esc(r.username)+'</code><br>Temporary password: <code>'+esc(r.password)+'</code>';document.querySelector('#creds').classList.remove('hidden');e.target.reset();document.querySelector('#addmsg').textContent='Account created. Copy the password now; it cannot be shown again.';document.querySelector('#addmsg').classList.remove('hidden','error');location.hash='credentials'}catch(x){const n=document.querySelector('#addmsg');n.textContent=x.message;n.classList.remove('hidden');n.classList.add('error')}};document.querySelector('#settings').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);try{await api('/api/admin/settings',{method:'POST',headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},body:JSON.stringify({officeName:f.get('officeName'),officeLat:f.get('officeLat'),officeLng:f.get('officeLng'),radius:f.get('radius')})});document.querySelector('#setmsg').textContent='Office location saved.';document.querySelector('#setmsg').classList.remove('hidden','error')}catch(x){const n=document.querySelector('#setmsg');n.textContent=x.message;n.classList.remove('hidden');n.classList.add('error')}}}catch(e){if(e.message.includes('Admin')||e.message.includes('Manager')){adminPassword='';sessionStorage.removeItem('doit-admin');sessionStorage.removeItem('dm-manager');login();msg('Admin password was rejected.','error')}else{login();msg(e.message,'error')}}}
-if(location.pathname==='/poster'){api('/api/poster').then(d=>{app.innerHTML='<section class="card narrow" style="text-align:center"><p>'+esc(d.officeName)+'</p><h1>Scan at arrival and departure</h1><p>Open your DoIt Innovations account and scan this code.</p><img alt="Office attendance QR code" width="280" height="280" src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data='+encodeURIComponent(d.code)+'"><p class="muted">Print this page and place it at the office entrance.</p><button onclick="print()">Print poster</button></section>'}).catch(e=>app.innerHTML='<p>'+esc(e.message)+'</p>')}else if(location.pathname==='/admin'||location.pathname==='/manager'){adminPortal()}else{employeeView()}
-</script></body></html>`;
 
+const html = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0d3b2e">
+<title>DoIt Innovations · Enterprise Attendance ERP</title>
+<style>
+:root{
+  --primary:#0d5c46;--primary-hover:#094333;--primary-light:#e8f4f0;
+  --bg:#f4f6f3;--surface:#ffffff;--border:#e2e7e2;--ink:#12211c;--muted:#576961;
+  --success-bg:#e6f6ec;--success-ink:#136237;--danger-bg:#fdeeed;--danger-ink:#a5241b;
+  --warn-bg:#fef7e7;--warn-ink:#946300;--radius:14px;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+header{background:#0d3b2e;color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand strong{font-size:19px;letter-spacing:-0.2px}
+.brand span{background:rgba(255,255,255,0.15);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:0.5px}
+main{max-width:1120px;width:100%;margin:28px auto;padding:0 20px;flex:1}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:0 4px 20px rgba(13,60,46,0.04);margin-bottom:20px}
+.narrow{max-width:440px;margin:8vh auto}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-bottom:20px}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.between{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-size:26px;letter-spacing:-0.5px;margin-bottom:6px}
+h2{font-size:18px;letter-spacing:-0.3px;margin-bottom:14px;color:var(--ink)}
+p{color:var(--muted);font-size:14px;line-height:1.5}
+.stat-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px}
+.stat-box .title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.stat-box .val{font-size:28px;font-weight:800;color:var(--ink);margin:8px 0 2px}
+.stat-box .sub{font-size:12px;color:var(--muted)}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#283c34}
+input,select{width:100%;padding:11px 13px;border:1px solid #c8d4cd;border-radius:9px;font:inherit;background:#fff;outline:none}
+input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,92,70,0.15)}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:9px;background:var(--primary);color:#fff;font:600 14px inherit;padding:11px 18px;cursor:pointer;text-decoration:none;transition:background .15s}
+button:hover,.btn:hover{background:var(--primary-hover)}
+button.secondary,.btn.secondary{background:var(--primary-light);color:var(--primary);border:1px solid #c2e2d6}
+button.secondary:hover,.btn.secondary:hover{background:#d5ebe2}
+button.danger{background:var(--danger-ink)}
+.badge{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:4px 10px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
+.badge.present{background:var(--success-bg);color:var(--success-ink)}
+.badge.absent{background:var(--danger-bg);color:var(--danger-ink)}
+.badge.weekend{background:#edf0ee;color:#5a6862}
+.badge.pending{background:var(--warn-bg);color:var(--warn-ink)}
+.badge.in{background:#e7f4ff;color:#0353a4}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px}
+th{background:#f8faf8;font-weight:700;color:#354a41;text-transform:uppercase;font-size:11px;letter-spacing:0.5px}
+tr:hover td{background:#fafcfa}
+.hidden{display:none!important}
+.notice{padding:12px 16px;border-radius:9px;background:#eef4f0;color:#2c4c3e;margin:14px 0;font-size:13px;line-height:1.45}
+.notice.success{background:var(--success-bg);color:var(--success-ink)}
+.notice.error{background:var(--danger-bg);color:var(--danger-ink)}
+video{width:100%;max-height:45vh;border-radius:12px;background:#000;margin:12px 0}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:16px}
+.tab{background:transparent;color:var(--muted);border:0;padding:8px 14px;font-size:13px;font-weight:600;border-radius:7px;cursor:pointer}
+.tab.active{background:var(--primary-light);color:var(--primary)}
+@media(max-width:768px){main{margin:16px auto;padding:0 14px}.card{padding:18px}h1{font-size:22px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <strong>◈ DoIt Innovations</strong>
+    <span>ERP ATTENDANCE</span>
+  </div>
+  <div id="headerAuth" class="row"></div>
+</header>
+<main id="app"></main>
+
+<script>
+const app=document.querySelector('#app');
+const headerAuth=document.querySelector('#headerAuth');
+let adminPassword=sessionStorage.getItem('doit-admin')||'';
+let stream=null;
+let activeMonth=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit'}).format(new Date());
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const timeStr=t=>t?new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'—';
+
+async function api(path,opts={}){
+  const r=await fetch(path,{...opts,headers:{'content-type':'application/json',...(opts.headers||{})}});
+  let d={};
+  try{d=await r.json()}catch{}
+  if(!r.ok)throw Error(d.error||'Request failed');
+  return d;
+}
+const post=(path,data)=>api(path,{method:'POST',body:JSON.stringify(data)});
+function msg(id,s,cls=''){
+  const n=document.querySelector(id);
+  if(n){n.className='notice '+cls;n.textContent=s;n.classList.remove('hidden')}
+}
+
+// ---------------- LOGIN VIEW ----------------
+function loginView(){
+  headerAuth.innerHTML='<button class="secondary" id="adminHeaderBtn">Admin Portal</button>';
+  document.querySelector('#adminHeaderBtn').onclick=promptAdmin;
+  app.innerHTML=\`
+    <section class="card narrow">
+      <div style="text-align:center;margin-bottom:16px">
+        <span class="badge present">DOIT INNOVATIONS ERP</span>
+        <h1 style="margin-top:12px">Employee Sign In</h1>
+        <p>Access your monthly attendance record, check-in history, and punch log.</p>
+      </div>
+      <form id="loginForm">
+        <label>Username or Employee ID</label>
+        <input name="username" placeholder="e.g. rahul.sharma" autocomplete="username" required>
+        <label>Password</label>
+        <input name="password" type="password" placeholder="••••••••" autocomplete="current-password" required>
+        <div id="loginMsg" class="notice hidden"></div>
+        <button style="width:100%;margin-top:18px">Sign In to ERP</button>
+      </form>
+      <hr style="border:0;border-top:1px solid var(--border);margin:24px 0 16px">
+      <div style="text-align:center">
+        <p class="muted" style="margin-bottom:10px">Need admin management access?</p>
+        <button class="secondary" id="adminLoginBtn" style="width:100%">Sign In as Admin</button>
+      </div>
+    </section>
+  \`;
+  document.querySelector('#loginForm').onsubmit=async e=>{
+    e.preventDefault();
+    const f=new FormData(e.target);
+    try{
+      await post('/api/login',{username:f.get('username'),password:f.get('password')});
+      location.reload();
+    }catch(err){
+      msg('#loginMsg',err.message,'error');
+    }
+  };
+  document.querySelector('#adminLoginBtn').onclick=promptAdmin;
+}
+
+function promptAdmin(){
+  const pass=prompt('Enter DoIt Innovations Admin Password:');
+  if(pass){
+    adminPassword=pass;
+    sessionStorage.setItem('doit-admin',pass);
+    adminPortalView();
+  }
+}
+
+// ---------------- EMPLOYEE ERP VIEW ----------------
+async function employeeView(){
+  let me;
+  try{
+    me=await api('/api/me?month='+encodeURIComponent(activeMonth));
+  }catch{
+    loginView();
+    return;
+  }
+
+  headerAuth.innerHTML=\`
+    <span style="color:#c0ded4;font-size:13px">\${esc(me.employee.name)} (\${esc(me.employee.emp_code||'EMP')})</span>
+    <button class="secondary" id="logoutBtn" style="padding:6px 12px;font-size:12px">Sign Out</button>
+  \`;
+  document.querySelector('#logoutBtn').onclick=async()=>{
+    await post('/api/logout',{});
+    location.reload();
+  };
+
+  const isAtWork=me.todaySummary?.currentState==='in';
+  const todayBadge=isAtWork?'<span class="badge present">● Currently At Work</span>':me.todaySummary?.punches?.length?'<span class="badge in">✓ Completed for Today</span>':'<span class="badge pending">○ Not Checked In Today</span>';
+
+  app.innerHTML=\`
+    <div class="between" style="margin-bottom:18px">
+      <div>
+        <h1>Welcome, \${esc(me.employee.name)}</h1>
+        <p>\${esc(me.employee.role)} · \${esc(me.employee.department)} Department · ID: <strong>\${esc(me.employee.emp_code||'EMP')}</strong></p>
+      </div>
+      <div>\${todayBadge}</div>
+    </div>
+
+    <!-- Quick Check-in Card -->
+    <section class="card">
+      <div class="between">
+        <div>
+          <h2>Today&#39;s Attendance Punch</h2>
+          <p>Scan the office entrance QR poster to record arrival or departure with GPS verification.</p>
+        </div>
+        <button id="openScannerBtn" style="min-width:180px">
+          \${isAtWork?'Check Out (Scan QR)':'Check In (Scan QR)'}
+        </button>
+      </div>
+      <div id="scannerBox" class="hidden" style="margin-top:16px">
+        <video id="scannerVideo" playsinline></video>
+        <div class="row">
+          <button class="secondary" id="closeScannerBtn">Cancel Scanner</button>
+          <span style="font-size:12px;color:var(--muted)">Ensure camera & location access are enabled.</span>
+        </div>
+      </div>
+      <div id="scanMsg" class="notice hidden"></div>
+      
+      <div class="grid-4" style="margin-top:20px;margin-bottom:0">
+        <div class="stat-box">
+          <div class="title">First In (Arrival)</div>
+          <div class="val" style="font-size:20px">\${timeStr(me.todaySummary?.firstIn)}</div>
+          <div class="sub">Today&#39;s entrance punch</div>
+        </div>
+        <div class="stat-box">
+          <div class="title">Last Out (Departure)</div>
+          <div class="val" style="font-size:20px">\${timeStr(me.todaySummary?.lastOut)}</div>
+          <div class="sub">Today&#39;s exit punch</div>
+        </div>
+        <div class="stat-box">
+          <div class="title">Hours Logged Today</div>
+          <div class="val" style="font-size:20px">\${me.todaySummary?.hoursWorked||'0h 0m'}</div>
+          <div class="sub">Effective on-site time</div>
+        </div>
+        <div class="stat-box">
+          <div class="title">Total Punches Today</div>
+          <div class="val" style="font-size:20px">\${me.todaySummary?.punches?.length||0}</div>
+          <div class="sub">Arrivals & departures</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Monthly ERP Sheet & History -->
+    <section class="card">
+      <div class="between" style="margin-bottom:14px">
+        <div>
+          <h2>Monthly Attendance Timesheet</h2>
+          <p>Review complete day-by-day attendance records, present days, and absent days.</p>
+        </div>
+        <div class="row">
+          <label style="margin:0;font-size:12px">Month:</label>
+          <input type="month" id="monthPicker" value="\${activeMonth}" style="width:auto;padding:6px 10px;font-size:13px">
+        </div>
+      </div>
+
+      <!-- Month Summary Metrics -->
+      <div class="grid-4">
+        <div class="stat-box">
+          <div class="title">Days Present</div>
+          <div class="val" style="color:var(--success-ink)">\${me.monthSummary.presentDays} <small style="font-size:14px;color:var(--muted)">days</small></div>
+          <div class="sub">Attended on-site</div>
+        </div>
+        <div class="stat-box">
+          <div class="title">Days Absent</div>
+          <div class="val" style="color:var(--danger-ink)">\${me.monthSummary.absentDays} <small style="font-size:14px;color:var(--muted)">days</small></div>
+          <div class="sub">Missed workdays</div>
+        </div>
+        <div class="stat-box">
+          <div class="title">Total Hours Worked</div>
+          <div class="val">\${me.monthSummary.totalHours} <small style="font-size:14px;color:var(--muted)">hrs</small></div>
+          <div class="sub">In selected month</div>
+        </div>
+        <div class="stat-box">
+          <div class="title">Attendance Rate</div>
+          <div class="val">\${me.monthSummary.attendanceRate}%</div>
+          <div class="sub">\${me.monthSummary.presentDays} of \${me.monthSummary.workingDaysSoFar} workdays</div>
+        </div>
+      </div>
+
+      <!-- Day-by-Day Calendar Matrix -->
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th>Status</th>
+              <th>First In</th>
+              <th>Last Out</th>
+              <th>Working Hours</th>
+            </tr>
+          </thead>
+          <tbody>
+            \${me.calendar.map(day=>\`
+              <tr>
+                <td><strong>\${esc(day.date)}</strong></td>
+                <td>\${esc(day.dayOfWeek)}</td>
+                <td>
+                  <span class="badge \${day.status.toLowerCase()}">
+                    \${day.status==='Present'?'✓ Present':day.status==='Absent'?'✕ Absent':day.status==='Weekend'?'Weekend':'—'}
+                  </span>
+                </td>
+                <td>\${timeStr(day.firstIn)}</td>
+                <td>\${timeStr(day.lastOut)}</td>
+                <td>\${day.duration||'—'}</td>
+              </tr>
+            \`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  \`;
+
+  document.querySelector('#openScannerBtn').onclick=startScanner;
+  document.querySelector('#closeScannerBtn').onclick=stopScanner;
+  document.querySelector('#monthPicker').onchange=e=>{
+    activeMonth=e.target.value;
+    employeeView();
+  };
+}
+
+// ---------------- CAMERA SCANNER ----------------
+async function startScanner(){
+  try{
+    if(!('BarcodeDetector' in window)){
+      throw Error('Camera barcode detection is not supported in this browser. Please use Chrome or Edge on mobile.');
+    }
+    const detector=new BarcodeDetector({formats:['qr_code']});
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    const video=document.querySelector('#scannerVideo');
+    video.srcObject=stream;
+    await video.play();
+    document.querySelector('#scannerBox').classList.remove('hidden');
+
+    const tick=async()=>{
+      if(!stream)return;
+      try{
+        const codes=await detector.detect(video);
+        if(codes.length){
+          stopScanner();
+          msg('#scanMsg','Verifying office GPS location...','');
+          const loc=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(
+            p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy}),
+            err=>reject(Error('Location access required: '+err.message)),
+            {enableHighAccuracy:true,timeout:12000}
+          ));
+          const res=await post('/api/scan',{qrCode:codes[0].rawValue,location:loc});
+          msg('#scanMsg',res.message,'success');
+          setTimeout(()=>location.reload(),1400);
+          return;
+        }
+      }catch(err){
+        msg('#scanMsg',err.message,'error');
+      }
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }catch(err){
+    msg('#scanMsg',err.message,'error');
+  }
+}
+
+function stopScanner(){
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
+  }
+  const box=document.querySelector('#scannerBox');
+  if(box)box.classList.add('hidden');
+}
+
+// ---------------- ADMIN ERP PORTAL VIEW ----------------
+async function adminPortalView(){
+  if(!adminPassword){
+    promptAdmin();
+    return;
+  }
+
+  try{
+    const [d,s]=await Promise.all([
+      api('/api/admin/dashboard?month='+encodeURIComponent(activeMonth),{headers:{authorization:'Basic '+btoa('admin:'+adminPassword)}}),
+      api('/api/admin/settings',{headers:{authorization:'Basic '+btoa('admin:'+adminPassword)}})
+    ]);
+
+    headerAuth.innerHTML=\`
+      <span style="color:#c0ded4;font-size:13px">Admin Mode</span>
+      <button class="secondary" id="employeeViewBtn" style="padding:6px 12px;font-size:12px">Employee View</button>
+      <button class="danger" id="adminLogoutBtn" style="padding:6px 12px;font-size:12px">Sign Out</button>
+    \`;
+    document.querySelector('#employeeViewBtn').onclick=()=>{
+      adminPassword='';
+      sessionStorage.removeItem('doit-admin');
+      employeeView();
+    };
+    document.querySelector('#adminLogoutBtn').onclick=()=>{
+      adminPassword='';
+      sessionStorage.removeItem('doit-admin');
+      loginView();
+    };
+
+    app.innerHTML=\`
+      <div class="between" style="margin-bottom:18px">
+        <div>
+          <h1>Enterprise HR & Attendance ERP</h1>
+          <p>Company-wide attendance management, employee roster, monthly timesheets, and entrance geofencing.</p>
+        </div>
+        <div class="row">
+          <a href="/poster" target="_blank" class="btn secondary">Print Office Poster ↗</a>
+        </div>
+      </div>
+
+      <!-- Executive Overview -->
+      <div class="grid-4">
+        <div class="stat-box">
+          <div class="title">Active Employees</div>
+          <div class="val">\${d.totalEmployees}</div>
+          <div class="sub">Total registered in ERP</div>
+        </div>
+        <div class="stat-box">
+          <div class="title">Present Today</div>
+          <div class="val" style="color:var(--success-ink)">\${d.checkedInToday}</div>
+          <div class="sub">Currently on-site</div>
+        </div>
+        <div class="stat-box">
+          <div class="title">Absent Today</div>
+          <div class="val" style="color:var(--danger-ink)">\${d.absentToday}</div>
+          <div class="sub">Not checked in</div>
+        </div>
+        <div class="stat-box">
+          <div class="title">Today&#39;s Punches</div>
+          <div class="val">\${d.todayPunchesCount}</div>
+          <div class="sub">Total scans recorded</div>
+        </div>
+      </div>
+
+      <!-- Add Employee & Office Settings Grid -->
+      <div class="grid-2">
+        <div class="card">
+          <h2>Add New Employee</h2>
+          <form id="addEmpForm">
+            <label>Full Name</label>
+            <input name="name" placeholder="e.g. Rahul Sharma" required>
+            <div class="row">
+              <div style="flex:1">
+                <label>Department</label>
+                <input name="department" placeholder="e.g. Engineering" value="Operations">
+              </div>
+              <div style="flex:1">
+                <label>Role / Title</label>
+                <input name="role" placeholder="e.g. Senior Specialist" value="Specialist">
+              </div>
+            </div>
+            <button style="margin-top:16px;width:100%">Create Employee Account</button>
+          </form>
+          <div id="empCreds" class="notice hidden"></div>
+          <div id="addEmpMsg" class="notice hidden"></div>
+        </div>
+
+        <div class="card">
+          <h2>Office Geofence Settings</h2>
+          <p>Configure the physical coordinates where employees are authorized to punch.</p>
+          <form id="officeSettingsForm">
+            <label>Office Name</label>
+            <input name="officeName" value="\${esc(s.officeName)}">
+            <div class="row">
+              <div style="flex:1">
+                <label>Latitude</label>
+                <input name="officeLat" type="number" step="any" value="\${esc(s.officeLat??'')}" required>
+              </div>
+              <div style="flex:1">
+                <label>Longitude</label>
+                <input name="officeLng" type="number" step="any" value="\${esc(s.officeLng??'')}" required>
+              </div>
+            </div>
+            <label>Allowed Radius (metres)</label>
+            <input name="radius" type="number" value="\${esc(s.radius)}">
+            <button style="margin-top:16px">Save Office Geofence</button>
+          </form>
+          <div id="settingsMsg" class="notice hidden"></div>
+        </div>
+      </div>
+
+      <!-- Employee Directory & Monthly Performance -->
+      <section class="card">
+        <div class="between" style="margin-bottom:12px">
+          <div>
+            <h2>Employee Attendance Records (ERP Roster)</h2>
+            <p>Monthly performance, days present, and today&#39;s real-time status.</p>
+          </div>
+          <div class="row">
+            <label style="margin:0;font-size:12px">Month:</label>
+            <input type="month" id="adminMonthPicker" value="\${activeMonth}" style="width:auto;padding:6px 10px;font-size:13px">
+          </div>
+        </div>
+
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Emp Code</th>
+                <th>Employee Name</th>
+                <th>Department</th>
+                <th>Role</th>
+                <th>Today&#39;s Status</th>
+                <th>Present (Month)</th>
+                <th>Absent (Month)</th>
+                <th>Hours (Month)</th>
+              </tr>
+            </thead>
+            <tbody>
+              \${d.employees.map(e=>\`
+                <tr>
+                  <td><code>\${esc(e.emp_code||'EMP')}</code></td>
+                  <td><strong>\${esc(e.name)}</strong><br><small class="muted">@\${esc(e.username)}</small></td>
+                  <td>\${esc(e.department||'General')}</td>
+                  <td>\${esc(e.role||'Specialist')}</td>
+                  <td>
+                    <span class="badge \${e.todayState==='in'?'present':e.todayState==='out'?'in':'absent'}">
+                      \${e.todayState==='in'?'At Work':e.todayState==='out'?'Checked Out':'Not In'}
+                    </span>
+                  </td>
+                  <td style="color:var(--success-ink);font-weight:700">\${e.monthStats.presentDays} d</td>
+                  <td style="color:var(--danger-ink);font-weight:700">\${e.monthStats.absentDays} d</td>
+                  <td>\${e.monthStats.totalHours} hrs</td>
+                </tr>
+              \`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Recent Punch Feed -->
+      <section class="card">
+        <h2>Live Verification Feed</h2>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Punch Time</th>
+                <th>Type</th>
+                <th>Distance to Geofence</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              \${d.recentPunches.map(p=>\`
+                <tr>
+                  <td><strong>\${esc(p.name)}</strong> (\${esc(p.emp_code||'EMP')})</td>
+                  <td>\${new Date(p.time).toLocaleString()}</td>
+                  <td><span class="badge \${p.kind==='in'?'present':'in'}">\${p.kind==='in'?'CHECK IN':'CHECK OUT'}</span></td>
+                  <td>\${p.distance_meters!=null?p.distance_meters+' m':'—'}</td>
+                  <td><span class="badge present">✓ \${esc(p.status)}</span></td>
+                </tr>
+              \`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    \`;
+
+    document.querySelector('#adminMonthPicker').onchange=e=>{
+      activeMonth=e.target.value;
+      adminPortalView();
+    };
+
+    document.querySelector('#addEmpForm').onsubmit=async e=>{
+      e.preventDefault();
+      const f=new FormData(e.target);
+      try{
+        const res=await api('/api/admin/employees',{
+          method:'POST',
+          headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},
+          body:JSON.stringify({
+            name:f.get('name'),
+            department:f.get('department'),
+            role:f.get('role')
+          })
+        });
+        document.querySelector('#empCreds').innerHTML=\`
+          <strong>Account Created Successfully! Give these credentials to \${esc(res.name)}:</strong><br>
+          Employee ID: <code>\${esc(res.emp_code)}</code><br>
+          Username: <code>\${esc(res.username)}</code><br>
+          Temporary Password: <code>\${esc(res.password)}</code>
+        \`;
+        document.querySelector('#empCreds').classList.remove('hidden');
+        e.target.reset();
+        adminPortalView();
+      }catch(err){
+        msg('#addEmpMsg',err.message,'error');
+      }
+    };
+
+    document.querySelector('#officeSettingsForm').onsubmit=async e=>{
+      e.preventDefault();
+      const f=new FormData(e.target);
+      try{
+        await api('/api/admin/settings',{
+          method:'POST',
+          headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},
+          body:JSON.stringify({
+            officeName:f.get('officeName'),
+            officeLat:f.get('officeLat'),
+            officeLng:f.get('officeLng'),
+            radius:f.get('radius')
+          })
+        });
+        msg('#settingsMsg','Office geofence settings saved successfully.','success');
+      }catch(err){
+        msg('#settingsMsg',err.message,'error');
+      }
+    };
+
+  }catch(err){
+    adminPassword='';
+    sessionStorage.removeItem('doit-admin');
+    loginView();
+    alert('Admin authentication failed: '+err.message);
+  }
+}
+
+// ---------------- ROUTER ----------------
+if(location.pathname==='/poster'){
+  api('/api/poster').then(d=>{
+    app.innerHTML=\`
+      <section class="card narrow" style="text-align:center;padding:40px 24px">
+        <span class="badge present">DOIT INNOVATIONS ERP</span>
+        <h1 style="margin-top:14px;font-size:28px">\${esc(d.officeName)}</h1>
+        <p style="margin-bottom:20px">Point your smartphone camera to check in or check out.</p>
+        <img alt="Office attendance QR code" width="280" height="280" src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=\${encodeURIComponent(d.code)}" style="border:3px solid var(--primary);border-radius:18px;padding:12px;background:#fff">
+        <p class="muted" style="margin-top:16px">Print and mount this poster at the office entrance.</p>
+        <button onclick="window.print()" style="margin-top:16px">Print Office Poster</button>
+      </section>
+    \`;
+  }).catch(e=>{app.innerHTML='<p>Error: '+esc(e.message)+'</p>'});
+}else if(location.pathname==='/admin'||location.pathname==='/manager'){
+  adminPortalView();
+}else{
+  employeeView();
+}
+</script>
+</body>
+</html>`;
+
+// ---------------- SERVER HELPERS ----------------
 const json=(data,status=200,headers={})=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...headers}});
 const hex=b=>Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,'0')).join('');
 async function digest(s){return hex(await crypto.subtle.digest('SHA-256',enc.encode(s)))}
-async function passwordHash(password,salt){const key=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveBits']);return hex(await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode(salt),iterations:100000,hash:'SHA-256'},key,256))}
-async function sign(value,secret){const key=await crypto.subtle.importKey('raw',enc.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);return hex(await crypto.subtle.sign('HMAC',key,enc.encode(value)))}
-function day(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
-function distance(a,b,c,d){const rad=x=>x*Math.PI/180,R=6371000,dl=rad(c-a),dn=rad(d-b),x=Math.sin(dl/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(dn/2)**2;return Math.round(R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)))}
-async function employee(request,env){const cookie=request.headers.get('cookie')||'',match=cookie.match(/(?:^|;\s*)doit_session=([^;]+)/)||cookie.match(/(?:^|;\s*)daymark_session=([^;]+)/);if(!match)throw Error('Sign in required');const sessionHash=await digest(match[1]),session=await env.DB.prepare('SELECT worker_id,expires_at FROM sessions WHERE id=?').bind(sessionHash).first();if(!session||session.expires_at<Date.now())throw Error('Session expired');const w=await env.DB.prepare('SELECT id,username,name,role,active FROM workers WHERE id=?').bind(session.worker_id).first();if(!w||!w.active)throw Error('Account inactive');return w}
-async function admin(request,env){const auth=request.headers.get('authorization')||'';if(!auth.startsWith('Basic '))throw Error('Admin authentication required');const decoded=atob(auth.slice(6)),colon=decoded.indexOf(':'),supplied=colon===-1?'':decoded.slice(colon+1);if(!env.ADMIN_PASSWORD||supplied!==env.ADMIN_PASSWORD)throw Error('Admin password incorrect')}
-async function handle(request,env){try{
-const url=new URL(request.url),p=url.pathname,method=request.method;
-if(p==='/api/login'&&method==='POST'){const b=await request.json(),username=String(b.username||'').trim().toLowerCase(),w=await env.DB.prepare('SELECT id,name,role,password_salt,password_hash,active FROM workers WHERE username=?').bind(username).first();if(!w||!w.active)return json({error:'Invalid username or password.'},401);const hash=await passwordHash(String(b.password||''),w.password_salt);if(hash!==w.password_hash)return json({error:'Invalid username or password.'},401);const token=hex(crypto.getRandomValues(new Uint8Array(24))),tokenHash=await digest(token),expires=Date.now()+30*86400000;await env.DB.prepare('INSERT INTO sessions(id,worker_id,created_at,expires_at) VALUES(?,?,?,?)').bind(tokenHash,w.id,Date.now(),expires).run();return json({ok:true,employee:{id:w.id,name:w.name,role:w.role},worker:{id:w.id,name:w.name,role:w.role}},200,{'set-cookie':`doit_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`})}
-if(p==='/api/logout'&&method==='POST'){const cookie=request.headers.get('cookie')||'',match=cookie.match(/(?:^|;\s*)doit_session=([^;]+)/)||cookie.match(/(?:^|;\s*)daymark_session=([^;]+)/);if(match){const h=await digest(match[1]);await env.DB.prepare('DELETE FROM sessions WHERE id=?').bind(h).run()}return json({ok:true},200,{'set-cookie':'doit_session=; Path=/; HttpOnly; Max-Age=0'})}
-if(p==='/api/me'&&method==='GET'){const w=await employee(request,env),today=day(),monthPrefix=today.slice(0,7)+'%',events=(await env.DB.prepare('SELECT id,kind,time,status FROM attendance_events WHERE worker_id=? AND day=? ORDER BY time DESC').bind(w.id,today).all()).results,lastEvent=events[0]||null,currentState=lastEvent?.kind==='in'?'in':'out',monthCount=(await env.DB.prepare('SELECT COUNT(*) as count FROM attendance_events WHERE worker_id=? AND day LIKE ?').bind(w.id,monthPrefix).first())?.count||0;return json({employee:{id:w.id,name:w.name,role:w.role},worker:{id:w.id,name:w.name,role:w.role},currentState:lastEvent?currentState:'none',lastEvent,events,monthCount})}
-if(p==='/api/poster'&&method==='GET'){const office=env.OFFICE_ID||'DOIT-OFFICE',payload=`DOIT|STATIC|${office}`,s=Object.fromEntries((await env.DB.prepare('SELECT key,value FROM settings').all()).results.map(x=>[x.key,x.value]));return json({officeName:s.officeName||'DoIt Innovations Office',code:`${payload}|${await sign(payload,env.SECRET_KEY)}`})}
-if(p==='/api/scan'&&method==='POST'){const w=await employee(request,env),b=await request.json(),parts=String(b.qrCode||'').split('|');if(parts.length!==4||(parts[0]!=='DOIT'&&parts[0]!=='DAYMARK')||parts[1]!=='STATIC')return json({error:'This is not the office attendance QR.'},400);const office=parts[2],prefix=parts[0],payload=`${prefix}|STATIC|${office}`;if(parts[3]!==await sign(payload,env.SECRET_KEY))return json({error:'This QR is invalid or belongs to another office.'},400);const settings=Object.fromEntries((await env.DB.prepare('SELECT key,value FROM settings').all()).results.map(x=>[x.key,x.value]));if(!settings.officeLat||!settings.officeLng)return json({error:'Admin must set the office location before scans can be recorded.'},503);const loc=b.location;if(typeof loc?.latitude!=='number'||typeof loc?.longitude!=='number')return json({error:'Allow location access to scan.'},400);const dist=distance(+settings.officeLat,+settings.officeLng,loc.latitude,loc.longitude),radius=Number(settings.radius)||150;if(dist>radius+(Number(loc.accuracy)||20))return json({error:`Location check failed: about ${dist}m from the office.`},400);const now=Date.now(),recent=await env.DB.prepare('SELECT time FROM attendance_events WHERE worker_id=? ORDER BY time DESC LIMIT 1').bind(w.id).first();if(recent&&now-recent.time<45000)return json({error:'Please wait before scanning again.'},429);const last=await env.DB.prepare('SELECT kind FROM attendance_events WHERE worker_id=? AND day=? ORDER BY time DESC LIMIT 1').bind(w.id,day()).first(),kind=last?.kind==='in'?'out':'in';await env.DB.prepare('INSERT INTO attendance_events(id,worker_id,day,kind,time,latitude,longitude,accuracy,distance_meters,status) VALUES(?,?,?,?,?,?,?,?,?,?)').bind(crypto.randomUUID(),w.id,day(),kind,now,loc.latitude,loc.longitude,loc.accuracy||null,dist,'verified').run();return json({success:true,kind,message:kind==='in'?'Check-in recorded. Welcome to the office.':'Check-out recorded. Have a great day.'})}
-if(p.startsWith('/api/admin/'))await admin(request,env);
-if(p==='/api/admin/settings'&&method==='GET'){const s=await env.DB.prepare('SELECT key,value FROM settings').all(),o=Object.fromEntries(s.results.map(x=>[x.key,x.value]));return json({officeName:o.officeName||'DoIt Innovations Office',officeLat:o.officeLat||'',officeLng:o.officeLng||'',radius:o.radius||'150'})}
-if(p==='/api/admin/settings'&&method==='POST'){const b=await request.json();for(const [k,v] of Object.entries({officeName:b.officeName,officeLat:b.officeLat,officeLng:b.officeLng,radius:b.radius}))await env.DB.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').bind(k,String(v)).run();return json({ok:true})}
-if((p==='/api/admin/employees'||p==='/api/admin/workers')&&method==='POST'){const b=await request.json(),name=String(b.name||'').trim();if(!name)return json({error:'Employee name required.'},400);let username=String(b.username||name.toLowerCase().replace(/[^a-z0-9]+/g,'.').replace(/^\.|\.$/g,'')).slice(0,24),base=username||'member',n=1;while(await env.DB.prepare('SELECT id FROM workers WHERE username=?').bind(username).first())username=`${base}${++n}`;const password=hex(crypto.getRandomValues(new Uint8Array(6))),salt=hex(crypto.getRandomValues(new Uint8Array(16))),hash=await passwordHash(password,salt),id=crypto.randomUUID();await env.DB.prepare('INSERT INTO workers(id,username,name,role,password_salt,password_hash,created_at) VALUES(?,?,?,?,?,?,?)').bind(id,username,name,String(b.role||''),salt,hash,Date.now()).run();return json({id,username,password,name},201)}
-if(p==='/api/admin/dashboard'){const today=day(),members=(await env.DB.prepare('SELECT id,username,name,role,active FROM workers ORDER BY created_at').all()).results,events=(await env.DB.prepare('SELECT e.id,e.worker_id,e.kind,e.time,e.distance_meters,e.status,w.name,w.username FROM attendance_events e JOIN workers w ON w.id=e.worker_id ORDER BY e.time DESC LIMIT 30').all()).results,states=(await env.DB.prepare('SELECT worker_id,kind FROM attendance_events WHERE day=? ORDER BY time').bind(today).all()).results,state={};for(const e of states)state[e.worker_id]=e.kind;const memberList=members.map(w=>({...w,state:state[w.id]||'not checked in'}));return json({employees:memberList,workers:memberList,recent:events,checkedIn:Object.values(state).filter(x=>x==='in').length,totalWorkers:members.length,todayCount:states.length})}
-if(p==='/admin'||p==='/manager'||p==='/poster')return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
-return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'} });
-}catch(e){const status=e.message.includes('Admin')||e.message.includes('Manager')?401:e.message.includes('Sign in')||e.message.includes('Session expired')?401:500;return json({error:e.message||'Server error'},status)}}
+async function passwordHash(password,salt){
+  const key=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveBits']);
+  return hex(await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode(salt),iterations:100000,hash:'SHA-256'},key,256));
+}
+async function sign(value,secret){
+  const key=await crypto.subtle.importKey('raw',enc.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+  return hex(await crypto.subtle.sign('HMAC',key,enc.encode(value)));
+}
+function todayStr(){
+  return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+}
+function distance(a,b,c,d){
+  const rad=x=>x*Math.PI/180,R=6371000,dl=rad(c-a),dn=rad(d-b),x=Math.sin(dl/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(dn/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)));
+}
+
+async function getAuthEmployee(request,env){
+  const cookie=request.headers.get('cookie')||'';
+  const match=cookie.match(/(?:^|;\s*)doit_session=([^;]+)/)||cookie.match(/(?:^|;\s*)daymark_session=([^;]+)/);
+  if(!match)throw Error('Sign in required');
+  const tokenHash=await digest(match[1]);
+  const session=await env.DB.prepare('SELECT employee_id,expires_at FROM sessions WHERE token_hash=?').bind(tokenHash).first();
+  if(!session||session.expires_at<Date.now())throw Error('Session expired');
+  const emp=await env.DB.prepare('SELECT id,emp_code,username,name,role,department,active FROM employees WHERE id=?').bind(session.employee_id).first();
+  if(!emp||!emp.active)throw Error('Account inactive or disabled');
+  return emp;
+}
+
+async function requireAdmin(request,env){
+  const auth=request.headers.get('authorization')||'';
+  if(!auth.startsWith('Basic '))throw Error('Admin authentication required');
+  const decoded=atob(auth.slice(6));
+  const colon=decoded.indexOf(':');
+  const supplied=colon===-1?'':decoded.slice(colon+1);
+  if(!env.ADMIN_PASSWORD||supplied!==env.ADMIN_PASSWORD)throw Error('Admin password incorrect');
+}
+
+// Compute calendar & statistics for a given employee & month (e.g. '2026-11')
+async function buildMonthlyTimesheet(env, employeeId, monthStr){
+  const today=todayStr();
+  const [yearStr, monthNumStr]=monthStr.split('-');
+  const year=parseInt(yearStr,10);
+  const monthIndex=parseInt(monthNumStr,10)-1; // 0-indexed
+  const daysInMonth=new Date(year, monthIndex+1, 0).getDate();
+
+  // Fetch all punches for this employee in this month
+  const monthPattern=`${monthStr}-%`;
+  const events=(await env.DB.prepare(
+    'SELECT id,kind,time,day FROM attendance_events WHERE employee_id=? AND day LIKE ? ORDER BY time ASC'
+  ).bind(employeeId, monthPattern).all()).results;
+
+  // Group events by day
+  const dayMap={};
+  for(const e of events){
+    if(!dayMap[e.day])dayMap[e.day]=[];
+    dayMap[e.day].push(e);
+  }
+
+  const calendar=[];
+  let presentDays=0;
+  let absentDays=0;
+  let totalMinutesWorked=0;
+  let workingDaysSoFar=0;
+
+  for(let d=1; d<=daysInMonth; d++){
+    const dStr=String(d).padStart(2,'0');
+    const dateStr=`${monthStr}-${dStr}`;
+    const dt=new Date(year, monthIndex, d);
+    const dayOfWeekStr=new Intl.DateTimeFormat('en-US',{weekday:'short'}).format(dt);
+    const isWeekend=(dt.getDay()===0 || dt.getDay()===6); // Sun or Sat
+    const isPastOrToday=(dateStr<=today);
+
+    const punches=dayMap[dateStr]||[];
+    let status='Upcoming';
+    let firstIn=null;
+    let lastOut=null;
+    let durationStr='';
+
+    if(punches.length>0){
+      status='Present';
+      presentDays++;
+      const inPunches=punches.filter(p=>p.kind==='in');
+      const outPunches=punches.filter(p=>p.kind==='out');
+      firstIn=inPunches[0]?.time||punches[0].time;
+      lastOut=outPunches.length?outPunches[outPunches.length-1].time:null;
+
+      if(firstIn && lastOut && lastOut>firstIn){
+        const diffMins=Math.round((lastOut-firstIn)/60000);
+        totalMinutesWorked+=diffMins;
+        const hrs=Math.floor(diffMins/60);
+        const mins=diffMins%60;
+        durationStr=`${hrs}h ${mins}m`;
+      }else if(firstIn){
+        durationStr='In progress';
+      }
+    }else{
+      if(isWeekend){
+        status='Weekend';
+      }else if(isPastOrToday){
+        status='Absent';
+        absentDays++;
+      }
+    }
+
+    if(!isWeekend && isPastOrToday){
+      workingDaysSoFar++;
+    }
+
+    calendar.push({
+      date:dateStr,
+      dayNumber:d,
+      dayOfWeek:dayOfWeekStr,
+      isWeekend,
+      status,
+      firstIn,
+      lastOut,
+      duration:durationStr,
+      punchesCount:punches.length
+    });
+  }
+
+  const totalHours=(totalMinutesWorked/60).toFixed(1);
+  const attendanceRate=workingDaysSoFar>0?Math.round((presentDays/workingDaysSoFar)*100):0;
+
+  return {
+    calendar,
+    monthSummary:{
+      month:monthStr,
+      presentDays,
+      absentDays,
+      totalHours,
+      workingDaysSoFar,
+      attendanceRate
+    }
+  };
+}
+
+// ---------------- REQUEST HANDLER ----------------
+async function handle(request,env){
+  try{
+    const url=new URL(request.url);
+    const p=url.pathname;
+    const method=request.method;
+
+    // Login API
+    if(p==='/api/login'&&method==='POST'){
+      const b=await request.json();
+      const identifier=String(b.username||'').trim().toLowerCase();
+      const emp=await env.DB.prepare(
+        'SELECT id,emp_code,username,name,role,department,password_salt,password_hash,active FROM employees WHERE LOWER(username)=? OR LOWER(emp_code)=?'
+      ).bind(identifier, identifier).first();
+
+      if(!emp||!emp.active)return json({error:'Invalid credentials or account inactive.'},401);
+
+      const hash=await passwordHash(String(b.password||''),emp.password_salt);
+      if(hash!==emp.password_hash)return json({error:'Invalid credentials.'},401);
+
+      const token=hex(crypto.getRandomValues(new Uint8Array(24)));
+      const tokenHash=await digest(token);
+      const expires=Date.now()+30*86400000; // 30 days session retention
+
+      await env.DB.prepare(
+        'INSERT INTO sessions(token_hash,employee_id,created_at,expires_at) VALUES(?,?,?,?)'
+      ).bind(tokenHash,emp.id,Date.now(),expires).run();
+
+      return json({
+        ok:true,
+        employee:{id:emp.id,emp_code:emp.emp_code,name:emp.name,role:emp.role}
+      },200,{'set-cookie':`doit_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`});
+    }
+
+    // Logout API
+    if(p==='/api/logout'&&method==='POST'){
+      const cookie=request.headers.get('cookie')||'';
+      const match=cookie.match(/(?:^|;\s*)doit_session=([^;]+)/)||cookie.match(/(?:^|;\s*)daymark_session=([^;]+)/);
+      if(match){
+        const tokenHash=await digest(match[1]);
+        await env.DB.prepare('DELETE FROM sessions WHERE token_hash=?').bind(tokenHash).run();
+      }
+      return json({ok:true},200,{'set-cookie':'doit_session=; Path=/; HttpOnly; Max-Age=0'});
+    }
+
+    // Employee Profile & Monthly ERP Timesheet
+    if(p==='/api/me'&&method==='GET'){
+      const emp=await getAuthEmployee(request,env);
+      const today=todayStr();
+      const month=url.searchParams.get('month')||today.slice(0,7);
+
+      // Today punches
+      const todayPunches=(await env.DB.prepare(
+        'SELECT id,kind,time,status FROM attendance_events WHERE employee_id=? AND day=? ORDER BY time ASC'
+      ).bind(emp.id,today).all()).results;
+
+      const lastPunch=todayPunches[todayPunches.length-1]||null;
+      const inPunches=todayPunches.filter(x=>x.kind==='in');
+      const outPunches=todayPunches.filter(x=>x.kind==='out');
+      const firstIn=inPunches[0]?.time||null;
+      const lastOut=outPunches.length?outPunches[outPunches.length-1].time:null;
+
+      let hoursWorked='0h 0m';
+      if(firstIn && lastOut && lastOut>firstIn){
+        const m=Math.round((lastOut-firstIn)/60000);
+        hoursWorked=`${Math.floor(m/60)}h ${m%60}m`;
+      }else if(firstIn){
+        const m=Math.round((Date.now()-firstIn)/60000);
+        hoursWorked=`${Math.floor(m/60)}h ${m%60}m (in progress)`;
+      }
+
+      const timesheet=await buildMonthlyTimesheet(env, emp.id, month);
+
+      return json({
+        employee:emp,
+        todaySummary:{
+          date:today,
+          currentState:lastPunch?.kind==='in'?'in':'out',
+          firstIn,
+          lastOut,
+          hoursWorked,
+          punches:todayPunches
+        },
+        calendar:timesheet.calendar,
+        monthSummary:timesheet.monthSummary
+      });
+    }
+
+    // Entrance Poster QR Fetch
+    if(p==='/api/poster'&&method==='GET'){
+      const office=env.OFFICE_ID||'DOIT-HQ';
+      const payload=`DOIT|STATIC|${office}`;
+      const settings=Object.fromEntries((await env.DB.prepare('SELECT key,value FROM settings').all()).results.map(x=>[x.key,x.value]));
+      return json({
+        officeName:settings.officeName||'DoIt Innovations Head Office',
+        code:`${payload}|${await sign(payload,env.SECRET_KEY)}`
+      });
+    }
+
+    // Scan Attendance Punch
+    if(p==='/api/scan'&&method==='POST'){
+      const emp=await getAuthEmployee(request,env);
+      const b=await request.json();
+      const parts=String(b.qrCode||'').split('|');
+
+      if(parts.length!==4||(parts[0]!=='DOIT'&&parts[0]!=='DAYMARK')||parts[1]!=='STATIC'){
+        return json({error:'Invalid QR poster scanned. Please scan the official DoIt Innovations attendance poster.'},400);
+      }
+      const office=parts[2];
+      const prefix=parts[0];
+      const payload=`${prefix}|STATIC|${office}`;
+      if(parts[3]!==await sign(payload,env.SECRET_KEY)){
+        return json({error:'This QR code is invalid or signature does not match.'},400);
+      }
+
+      const settings=Object.fromEntries((await env.DB.prepare('SELECT key,value FROM settings').all()).results.map(x=>[x.key,x.value]));
+      if(!settings.officeLat||!settings.officeLng){
+        return json({error:'Office GPS coordinates must be configured by Admin in the portal first.'},503);
+      }
+
+      const loc=b.location;
+      if(typeof loc?.latitude!=='number'||typeof loc?.longitude!=='number'){
+        return json({error:'Location permission is required to verify physical office presence.'},400);
+      }
+
+      const dist=distance(+settings.officeLat,+settings.officeLng,loc.latitude,loc.longitude);
+      const radius=Number(settings.radius)||150;
+      if(dist>radius+(Number(loc.accuracy)||20)){
+        return json({error:`Location check failed: You are approximately ${dist}m away from the office (allowed: ${radius}m).`},400);
+      }
+
+      const now=Date.now();
+      const today=todayStr();
+
+      // Anti-replay 45s cooldown
+      const recent=await env.DB.prepare(
+        'SELECT time FROM attendance_events WHERE employee_id=? ORDER BY time DESC LIMIT 1'
+      ).bind(emp.id).first();
+      if(recent && now-recent.time<45000){
+        return json({error:'Please wait at least 45 seconds before punching again.'},429);
+      }
+
+      const last=await env.DB.prepare(
+        'SELECT kind FROM attendance_events WHERE employee_id=? AND day=? ORDER BY time DESC LIMIT 1'
+      ).bind(emp.id,today).first();
+
+      const kind=last?.kind==='in'?'out':'in';
+
+      await env.DB.prepare(
+        'INSERT INTO attendance_events(id,employee_id,day,kind,time,latitude,longitude,accuracy,distance_meters,status) VALUES(?,?,?,?,?,?,?,?,?,?)'
+      ).bind(crypto.randomUUID(),emp.id,today,kind,now,loc.latitude,loc.longitude,loc.accuracy||null,dist,'verified').run();
+
+      return json({
+        success:true,
+        kind,
+        message:kind==='in'?'Arrival recorded! Welcome to DoIt Innovations.':'Departure recorded! Have a great evening.'
+      });
+    }
+
+    // ---------------- ADMIN API ROUTES ----------------
+    if(p.startsWith('/api/admin/'))await requireAdmin(request,env);
+
+    if(p==='/api/admin/settings'&&method==='GET'){
+      const s=await env.DB.prepare('SELECT key,value FROM settings').all();
+      const o=Object.fromEntries(s.results.map(x=>[x.key,x.value]));
+      return json({
+        officeName:o.officeName||'DoIt Innovations Head Office',
+        officeLat:o.officeLat||'',
+        officeLng:o.officeLng||'',
+        radius:o.radius||'150'
+      });
+    }
+
+    if(p==='/api/admin/settings'&&method==='POST'){
+      const b=await request.json();
+      for(const [k,v] of Object.entries({officeName:b.officeName,officeLat:b.officeLat,officeLng:b.officeLng,radius:b.radius})){
+        await env.DB.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').bind(k,String(v)).run();
+      }
+      return json({ok:true});
+    }
+
+    // Add Employee
+    if((p==='/api/admin/employees'||p==='/api/admin/workers')&&method==='POST'){
+      const b=await request.json();
+      const name=String(b.name||'').trim();
+      if(!name)return json({error:'Employee name is required.'},400);
+
+      const dept=String(b.department||'Operations').trim();
+      const role=String(b.role||'Specialist').trim();
+
+      // Generate Clean Username & Employee Code
+      let baseUser=name.toLowerCase().replace(/[^a-z0-9]+/g,'.').replace(/^\.|\.$/g,'').slice(0,20)||'emp';
+      let username=baseUser;
+      let counter=1;
+      while(await env.DB.prepare('SELECT id FROM employees WHERE username=?').bind(username).first()){
+        username=`${baseUser}${++counter}`;
+      }
+
+      const totalCount=(await env.DB.prepare('SELECT COUNT(*) as count FROM employees').first())?.count||0;
+      const empCode=`DOIT-${String(totalCount+101).padStart(4,'0')}`;
+
+      const tempPassword=hex(crypto.getRandomValues(new Uint8Array(5)));
+      const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
+      const hash=await passwordHash(tempPassword,salt);
+      const id=crypto.randomUUID();
+
+      await env.DB.prepare(
+        'INSERT INTO employees(id,emp_code,username,name,role,department,joining_date,password_salt,password_hash,created_at,active) VALUES(?,?,?,?,?,?,?,?,?,?,1)'
+      ).bind(id,empCode,username,name,role,dept,todayStr(),salt,hash,Date.now()).run();
+
+      return json({id,emp_code:empCode,username,password:tempPassword,name,role,department:dept},201);
+    }
+
+    // Admin ERP Dashboard & Monthly Reports
+    if(p==='/api/admin/dashboard'&&method==='GET'){
+      const today=todayStr();
+      const month=url.searchParams.get('month')||today.slice(0,7);
+
+      const emps=(await env.DB.prepare('SELECT id,emp_code,username,name,role,department,active FROM employees ORDER BY created_at ASC').all()).results;
+
+      const todayEvents=(await env.DB.prepare('SELECT employee_id,kind FROM attendance_events WHERE day=? ORDER BY time ASC').bind(today).all()).results;
+      const todayMap={};
+      for(const e of todayEvents)todayMap[e.employee_id]=e.kind;
+
+      // Get monthly stats for each employee
+      const employeeReports=await Promise.all(emps.map(async e=>{
+        const ts=await buildMonthlyTimesheet(env, e.id, month);
+        return {
+          ...e,
+          todayState:todayMap[e.id]||'none',
+          monthStats:ts.monthSummary
+        };
+      }));
+
+      const recentPunches=(await env.DB.prepare(
+        'SELECT e.id,e.employee_id,e.kind,e.time,e.distance_meters,e.status,m.name,m.emp_code FROM attendance_events e JOIN employees m ON m.id=e.employee_id ORDER BY e.time DESC LIMIT 25'
+      ).all()).results;
+
+      const checkedInToday=Object.values(todayMap).filter(x=>x==='in').length;
+      const absentToday=emps.length - checkedInToday;
+
+      return json({
+        employees:employeeReports,
+        totalEmployees:emps.length,
+        checkedInToday,
+        absentToday,
+        todayPunchesCount:todayEvents.length,
+        recentPunches
+      });
+    }
+
+    // Serve HTML
+    if(p==='/admin'||p==='/manager'||p==='/poster'||p==='/') {
+      return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
+    }
+    return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
+
+  }catch(err){
+    const status=err.message.includes('Admin')?401:err.message.includes('Sign in')||err.message.includes('Session expired')?401:500;
+    return json({error:err.message||'Server error'},status);
+  }
+}
+
 export default {fetch(request,env){return handle(request,env)}};

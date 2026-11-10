@@ -4,49 +4,57 @@ const html = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0d3b2e">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#002046">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="DoIt ERP">
+<meta name="apple-mobile-web-app-title" content="DoIt Attendance">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/svg+xml" href="/icon.svg">
 <link rel="apple-touch-icon" href="/icon-192.png">
-<title>DoIt Innovations · Enterprise Attendance ERP</title>
+<title>DoIt Attendance · DoIt Innovations</title>
 <style>
 :root{
-  --primary:#0d5c46;--primary-hover:#094333;--primary-light:#e8f4f0;
-  --bg:#f4f6f3;--surface:#ffffff;--border:#e2e7e2;--ink:#12211c;--muted:#576961;
+  color-scheme:light;
+  --primary:#086b9b;--primary-hover:#07577f;--primary-light:#e7f4fb;
+  --bg:#f4f7fa;--surface:#ffffff;--border:#e0e7ed;--ink:#172630;--muted:#647581;
   --success-bg:#e6f6ec;--success-ink:#136237;--danger-bg:#fdeeed;--danger-ink:#a5241b;
-  --warn-bg:#fef7e7;--warn-ink:#946300;--radius:14px;
+  --warn-bg:#fef7e7;--warn-ink:#946300;--radius:18px;
+  --shadow:0 16px 44px rgba(18,54,42,.07);
   font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
-header{background:#0d3b2e;color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
-.brand{display:flex;align-items:center;gap:10px}
-.brand strong{font-size:19px;letter-spacing:-0.2px}
-.brand span{background:rgba(255,255,255,0.15);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:0.5px}
-main{max-width:1120px;width:100%;margin:28px auto;padding:0 20px;flex:1}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:0 4px 20px rgba(13,60,46,0.04);margin-bottom:20px}
-.narrow{max-width:440px;margin:8vh auto}
-.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
-.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-bottom:20px}
-.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.between{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-h1{font-size:26px;letter-spacing:-0.5px;margin-bottom:6px}
-h2{font-size:18px;letter-spacing:-0.3px;margin-bottom:14px;color:var(--ink)}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{background:radial-gradient(ellipse at 50% -24%,#e5f0eb 0,transparent 48%),var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:50;background:#002046;color:#fff;padding:10px max(18px,calc((100vw - 1200px)/2));padding-top:max(10px,env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 6px 24px rgba(9,35,29,.12);backdrop-filter:blur(16px)}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-logo{width:135px;height:72px;display:block;flex:none;object-fit:contain;mix-blend-mode:normal}
+.brand-copy{display:grid;gap:2px;min-width:0}
+.brand strong{font-size:17px;letter-spacing:-.2px;white-space:nowrap}
+.brand-product{color:#91d9ff;font-size:10px;font-weight:750;letter-spacing:1.1px}
+main{max-width:1200px;width:100%;margin:32px auto;padding:0 24px 40px;flex:1}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow);margin-bottom:20px}
+.narrow{max-width:460px;margin:7vh auto}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px;margin-bottom:20px}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+.between{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;min-width:0}
+h1{font-size:clamp(24px,3vw,32px);line-height:1.16;letter-spacing:-.8px;margin-bottom:8px;text-wrap:balance}
+h2{font-size:19px;line-height:1.3;letter-spacing:-.35px;margin-bottom:12px;color:var(--ink);text-wrap:balance}
 p{color:var(--muted);font-size:14px;line-height:1.5}
 .stat-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px}
 .stat-box .title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
 .stat-box .val{font-size:28px;font-weight:800;color:var(--ink);margin:8px 0 2px}
 .stat-box .sub{font-size:12px;color:var(--muted)}
-label{display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#283c34}
-input,select{width:100%;padding:11px 13px;border:1px solid #c8d4cd;border-radius:9px;font:inherit;background:#fff;outline:none}
-input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,92,70,0.15)}
-button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:9px;background:var(--primary);color:#fff;font:600 14px inherit;padding:11px 18px;cursor:pointer;text-decoration:none;transition:background .15s}
-button:hover,.btn:hover{background:var(--primary-hover)}
+label{display:block;font-size:13px;font-weight:650;margin:14px 0 7px;color:#30463d}
+input,select{width:100%;min-width:0;padding:12px 14px;border:1px solid #cbd8d1;border-radius:11px;font:inherit;background:#fff;color:var(--ink);outline:none;transition:border-color .16s,box-shadow .16s}
+input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(23,100,81,.13)}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:11px;background:var(--primary);color:#fff;font:inherit;font-size:14px;font-weight:650;line-height:1.2;padding:12px 18px;cursor:pointer;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background .16s,border-color .16s,box-shadow .16s,transform .16s}
+button:hover,.btn:hover{background:var(--primary-hover);box-shadow:0 5px 14px rgba(16,77,63,.15)}
+button:active,.btn:active{transform:translateY(1px)}
+button:disabled{opacity:.62;cursor:wait;box-shadow:none;transform:none}
+button:focus-visible,.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #87d3b0;outline-offset:2px}
 button.secondary,.btn.secondary{background:var(--primary-light);color:var(--primary);border:1px solid #c2e2d6}
 button.secondary:hover,.btn.secondary:hover{background:#d5ebe2}
 button.danger{background:var(--danger-ink)}
@@ -54,10 +62,11 @@ button.danger{background:var(--danger-ink)}
 .badge.present{background:var(--success-bg);color:var(--success-ink)}
 .badge.absent{background:var(--danger-bg);color:var(--danger-ink)}
 .badge.weekend{background:#edf0ee;color:#5a6862}
+.badge.holiday{background:#fff1dc;color:#8a4b08}
 .badge.pending{background:var(--warn-bg);color:var(--warn-ink)}
 .badge.in{background:#e7f4ff;color:#0353a4}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px}
+table{width:100%;min-width:680px;border-collapse:collapse;margin-top:10px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--border);font-size:13px;white-space:nowrap}
 th{background:#f8faf8;font-weight:700;color:#354a41;text-transform:uppercase;font-size:11px;letter-spacing:0.5px}
 tr:hover td{background:#fafcfa}
 .hidden{display:none!important}
@@ -82,9 +91,9 @@ video{width:100%;max-height:45vh;border-radius:12px;background:#000;margin:12px 
 .details-toggle:hover{background:#e3ede7}
 .breakdown-row{background:#fbfdfc!important}
 .breakdown-box{padding:10px 14px;border:1px dashed #c8d8ce;border-radius:8px;background:#ffffff;margin:4px 0}
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,25,18,0.6);display:flex;align-items:center;justify-content:center;z-index:999;padding:16px}
-.modal-box{background:#fff;border-radius:16px;max-width:850px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 12px 40px rgba(0,0,0,0.2)}
-.install-banner{background:#0d3b2e;color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 4px 16px rgba(13,59,46,0.18);border:1px solid rgba(255,255,255,0.12)}
+.modal-overlay{position:fixed;inset:0;background:rgba(10,25,18,.62);display:flex;align-items:center;justify-content:center;z-index:999;padding:16px;overscroll-behavior:contain}
+.modal-box{background:#fff;border:1px solid var(--border);border-radius:20px;max-width:850px;width:100%;max-height:88vh;overflow-y:auto;overscroll-behavior:contain;padding:26px;box-shadow:0 20px 70px rgba(0,0,0,.24)}
+.install-banner{background:#002046;color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 4px 16px rgba(0,32,70,0.18);border:1px solid rgba(255,255,255,0.12)}
 .install-banner strong{color:#fff;font-size:14px}
 .install-banner p{color:#c4ded3;font-size:12px;margin:2px 0 0}
 .install-icon{font-size:22px;background:rgba(255,255,255,0.12);width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -95,17 +104,189 @@ video{width:100%;max-height:45vh;border-radius:12px;background:#000;margin:12px 
 .install-steps{background:#f8faf8;border:1px solid var(--border);border-radius:12px;padding:16px;margin:12px 0}
 .install-step-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:13px}
 .step-num{background:var(--primary);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0}
-@media(max-width:768px){main{margin:16px auto;padding:0 14px}.card{padding:18px}h1{font-size:22px}}
+@media(max-width:768px){main{margin:20px auto;padding:0 16px 28px}.card{padding:20px}.grid-4{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat-box{padding:14px}.stat-box .val{font-size:24px}.narrow{margin:6vh auto}header{padding-left:16px;padding-right:16px}}
+@media(max-width:520px){header{gap:8px;padding-left:12px;padding-right:12px}.brand{gap:8px}.brand-mark{width:34px;height:34px;border-radius:10px}.brand strong{font-size:14px}.brand-product{font-size:9px}.brand-copy{gap:1px}header #headerInstallBtn{padding:8px 10px!important;font-size:11px!important;white-space:nowrap}header #headerAuth{gap:6px}header #headerAuth button,header #headerAuth a{padding:8px 10px!important;font-size:12px!important;white-space:nowrap}main{padding:0 12px 24px;margin:16px auto}.card{padding:17px;border-radius:16px}.narrow{margin:5vh auto}.grid-4{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.grid-2{grid-template-columns:minmax(0,1fr);gap:12px}.stat-box{padding:12px}.stat-box .title{font-size:10px;letter-spacing:.35px}.stat-box .val{font-size:22px;margin:7px 0 2px}.stat-box .sub{font-size:11px}h2{font-size:17px}.between>*{min-width:0}.between>div:first-child{flex:1 1 100%}.between button,.between .btn{width:100%}.row>div{min-width:0}input,select{font-size:16px}form .row{align-items:stretch}form .row>div{flex:1 1 100%!important}video{max-height:38vh}.modal-overlay{align-items:flex-end;padding:0}.modal-box{max-height:92dvh;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom))}.install-banner{align-items:flex-start;padding:14px}.install-banner>.row:last-child{width:100%;justify-content:flex-end}.btn-install{padding:10px 12px}}
+@media(max-width:360px){.grid-4{grid-template-columns:minmax(0,1fr)}.brand-product{letter-spacing:.7px}.brand strong{font-size:13px}header #headerInstallBtn{font-size:10px!important;padding:7px 8px!important}}
+@media(max-width:520px){
+  html,body{width:100%;overflow-x:hidden}
+  header{min-height:60px;flex-wrap:nowrap;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));gap:8px}
+  header>.row{flex:0 0 auto;gap:6px!important}
+  .brand{flex:1;min-width:0;gap:8px}
+  .brand-logo{width:104px;height:56px}
+  .brand strong{font-size:14px}
+  header #headerInstallBtn{display:none!important}
+  header #headerAuth{flex-wrap:nowrap;min-width:0}
+  header #headerAuth button,header #headerAuth a{font-size:11px!important;padding:8px 9px!important}
+  main{width:100%;min-width:0}
+  .card{min-width:0;overflow-wrap:anywhere}
+  .attendance-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;width:100%}
+  .attendance-actions button{width:100%;min-height:48px}
+  #openScannerBtn{width:100%;min-height:48px}
+  #workSummary{min-height:150px;font-size:16px}
+  .timeline-item{align-items:flex-start}
+  .timeline-item>.row{min-width:0}
+  .table-scroll,section.card>div[style*="overflow-x:auto"]{max-width:100%;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+  .install-banner{width:100%;flex-wrap:wrap}
+  .install-banner .row{min-width:0}
+}
+@media(max-width:380px){
+  .brand-logo{width:88px;height:48px}
+  .brand strong{font-size:13px}
+  .brand-product{font-size:8px;letter-spacing:.6px}
+  header #headerAuth button,header #headerAuth a{font-size:10px!important;padding:8px 7px!important}
+  main{padding-left:10px;padding-right:10px}
+  .card{padding:15px}
+}
+/* Branded office poster */
+.poster-sheet{max-width:780px;margin:12px auto 18px;background:#fff;border:1px solid var(--border);border-radius:24px;overflow:hidden;box-shadow:var(--shadow)}
+.poster-top{background:#002046;color:#fff;padding:22px 28px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:5px solid #0eAAF5}
+.poster-logo{display:block;width:170px;height:82px;object-fit:contain}
+.poster-label{font-size:11px;letter-spacing:1.7px;font-weight:800;color:#91d9ff;text-align:right}
+.poster-content{padding:26px clamp(20px,5vw,52px) 30px;text-align:center}
+.poster-eyebrow{font-size:11px;letter-spacing:1.6px;font-weight:800;color:#087fb8;text-transform:uppercase}
+.poster-content h1{font-size:clamp(27px,4.5vw,42px);margin:9px 0 10px;color:#002046}
+.poster-lead{max-width:520px;margin:0 auto;color:#526879;font-size:15px}
+.poster-qr-frame{display:inline-block;margin:22px auto 18px;padding:14px;border:2px solid #d5eaf5;border-radius:22px;background:linear-gradient(135deg,#f2faff,#fff);box-shadow:0 12px 30px rgba(0,32,70,.1)}
+.poster-qr{display:block;width:min(66vw,390px);height:auto;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:10px}
+.poster-instructions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:left;margin:4px 0 18px}
+.poster-step{background:#f4f8fb;border:1px solid #dfeaf1;border-radius:13px;padding:13px;font-size:12px;line-height:1.4;color:#526879}
+.poster-step strong{display:block;color:#002046;font-size:13px;margin-bottom:4px}
+.poster-foot{border-top:1px solid #e3ebf0;padding-top:14px;color:#647581;font-size:11px}
+.poster-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 auto 30px}
+@media(max-width:520px){.poster-top{padding:16px 18px}.poster-logo{width:128px;height:64px}.poster-label{font-size:9px}.poster-instructions{grid-template-columns:1fr;text-align:center}.poster-step{padding:11px}}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{width:210mm!important;height:297mm!important;min-height:297mm!important;margin:0!important;background:#fff!important;overflow:visible!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  header,.poster-actions{display:none!important}
+  main#app{width:210mm!important;height:297mm!important;max-width:none!important;margin:0!important;padding:10mm!important;display:block!important}
+  .poster-sheet{width:190mm;height:277mm;max-width:none;margin:0;border:1px solid #d8e2e9;border-radius:0;box-shadow:none;display:flex;flex-direction:column}
+  .poster-top{padding:8mm 10mm}
+  .poster-logo{width:48mm;height:24mm}
+  .poster-content{padding:9mm 10mm 7mm;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .poster-content h1{font-size:30pt}
+  .poster-lead{font-size:12pt}
+  .poster-qr-frame{margin:6mm auto 5mm;padding:4mm}
+  .poster-qr{width:96mm;height:96mm}
+  .poster-instructions{gap:3mm;margin:2mm 0 5mm}
+  .poster-step{padding:3.5mm;font-size:9pt}
+  .poster-step strong{font-size:10pt}
+  .poster-foot{font-size:8pt}
+}
+/* Matched CR80 employee badge, personalized only by its serial and QR. */
+.id-card-preview{display:flex;justify-content:center;align-items:flex-start;gap:20px;flex-wrap:wrap;margin:24px auto}
+.id-card-sheet{page:idcard;width:342px;height:216px;max-width:100%;position:relative;overflow:hidden;border:1px solid #d3dee8;border-radius:16px;box-shadow:0 18px 42px rgba(0,32,70,.17);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.id-card-front{background:#f1eee8;color:#1d2a31;display:grid;grid-template-rows:12mm 1fr 14mm;padding:0}
+.id-card-front:before{content:"";position:absolute;inset:0 0 auto;height:12mm;background:#183b3a}
+.id-card-front:after{content:"";position:absolute;right:-12mm;top:4mm;width:45mm;height:45mm;border:1px solid rgba(24,59,58,.12);border-radius:50%;box-shadow:0 0 0 3mm rgba(24,59,58,.035),0 0 0 6mm rgba(24,59,58,.025)}
+.id-card-front-head{position:relative;z-index:1;display:flex;align-items:center;gap:3mm;padding:2mm 4mm}
+.id-card-logo{width:27mm;height:9mm;object-fit:contain;object-position:left center}
+.id-card-front-title{display:grid;gap:.6mm;border-left:1px solid rgba(255,255,255,.4);padding-left:3mm;color:#fff}
+.id-card-front-title strong{font-size:6.5pt;line-height:1.05;letter-spacing:1px;color:#fff}
+.id-card-front-title small{font-size:4.3pt;letter-spacing:1.1px;color:#c5dfd6;font-weight:800}
+.id-card-front-bottom{position:relative;z-index:1;display:flex;align-items:end;justify-content:space-between;gap:3mm;padding:1mm 4mm 3mm;background:#e4dfd6}
+.id-card-barcode-wrap{flex:1;background:#fff;border-radius:1mm;padding:1mm 1.5mm;min-width:0;align-self:end}
+.id-card-barcode{display:block;width:100%;height:8mm;object-fit:fill}
+.id-card-serial-block{width:32mm;display:grid;gap:.8mm;padding:0}
+.id-card-serial-block small{font-size:4.5pt;letter-spacing:.9px;color:#52615f;font-weight:800;text-transform:uppercase}
+.id-card-serial{font:700 6.3pt ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.55px;color:#1d2a31;white-space:nowrap}
+.id-card-back{background:#ebe9e2;color:#182523;padding:0;border:0;display:grid;grid-template-rows:10mm 1fr 8mm}
+.id-card-back:before{content:"";position:absolute;inset:0 0 auto;height:10mm;background:#183b3a}
+.id-card-back-head{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:3mm;padding:1mm 4mm;border:0}
+.id-card-back-logo{width:24mm;height:8mm;object-fit:contain;object-position:left center;background:transparent;border-radius:0;padding:0}
+.id-card-back-brand{font-size:4.5pt;line-height:1.35;letter-spacing:1px;font-weight:850;color:#d7e1db;text-align:right}
+.id-card-back-main{display:flex;align-items:center;justify-content:flex-start;gap:4mm;flex:1;padding:2mm 4mm}
+.id-card-qr{width:25mm;height:25mm;flex:none;object-fit:contain;padding:1mm;background:#fff;border:1px solid #c5c8bd;border-radius:1mm}
+.id-card-back-copy{max-width:none;display:grid;gap:2mm}
+.id-card-back-copy strong{font-size:6pt;line-height:1.3;letter-spacing:1px;color:#183b3a}
+.id-card-back-copy p{font-size:5.3pt;line-height:1.4;color:#515d57;max-width:38mm}
+.id-card-back-note{border-top:1px solid #c5c8bd;padding:1.5mm 4mm;font-size:4.5pt;line-height:1.35;color:#515d57;text-align:left}
+.id-card-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 auto 28px}
+.id-profile{max-width:600px;margin:32px auto;background:#fff;border:1px solid var(--border);border-radius:20px;padding:26px;box-shadow:var(--shadow)}
+.id-profile-logo{width:150px;height:70px;object-fit:contain;background:#002046;border-radius:12px;padding:6px}
+.id-profile h1{margin:18px 0 4px;color:#002046}
+.id-profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:20px}
+.id-profile-field{background:#f4f8fb;border:1px solid #e0eaf1;border-radius:12px;padding:13px}
+.id-profile-field small{display:block;color:var(--muted);font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.id-profile-field strong{color:#002046;font-size:14px;overflow-wrap:anywhere}
+@page idcard{size:85.6mm 54mm;margin:0}
+@media(max-width:420px){.id-profile{margin:18px 0;padding:19px}.id-profile-grid{grid-template-columns:1fr}}
+@media print{
+  body.id-card-print-mode{display:block!important;width:85.6mm!important;height:54mm!important;min-height:54mm!important;margin:0!important;background:#fff!important}
+  body.id-card-print-mode header,body.id-card-print-mode .id-card-actions{display:none!important}
+  body.id-card-print-mode main#app{display:block!important;width:85.6mm!important;height:54mm!important;max-width:none!important;margin:0!important;padding:0!important}
+  body.id-card-print-mode main#app{height:auto!important}
+  body.id-card-print-mode .id-card-preview{display:block;margin:0}
+  body.id-card-print-mode .id-card-sheet{width:85.6mm!important;height:54mm!important;max-width:none!important;margin:0!important;padding:3.5mm!important;border-radius:0!important;box-shadow:none!important;border:0!important;break-after:page;page-break-after:always}
+  body.id-card-print-mode .id-card-sheet:last-child{break-after:auto;page-break-after:auto}
+  body.id-card-print-mode .id-card-front{padding:0;grid-template-rows:12mm 1fr 14mm}
+  body.id-card-print-mode .id-card-front:before{height:12mm}
+  body.id-card-print-mode .id-card-front:after{right:-12mm;top:4mm;width:45mm;height:45mm}
+  body.id-card-print-mode .id-card-front-head{gap:3mm;padding:1.5mm 4mm}
+  body.id-card-print-mode .id-card-logo{width:27mm;height:9mm}
+  body.id-card-print-mode .id-card-front-title{gap:.6mm;padding-left:3mm}
+  body.id-card-print-mode .id-card-front-title strong{font-size:6.5pt;letter-spacing:1px}
+  body.id-card-print-mode .id-card-front-title small{font-size:4.3pt;letter-spacing:1.1px}
+  body.id-card-print-mode .id-card-front-bottom{gap:3mm;padding:1mm 4mm 3mm}
+  body.id-card-print-mode .id-card-barcode-wrap{padding:1mm 1.5mm}
+  body.id-card-print-mode .id-card-barcode{height:8mm}
+  body.id-card-print-mode .id-card-serial-block{width:32mm;gap:.8mm}
+  body.id-card-print-mode .id-card-serial-block small{font-size:4.5pt;letter-spacing:.9px}
+  body.id-card-print-mode .id-card-serial{font-size:6.3pt;letter-spacing:.55px}
+  body.id-card-print-mode .id-card-back{padding:0;grid-template-rows:10mm 1fr 8mm}
+  body.id-card-print-mode .id-card-back:before{height:10mm}
+  body.id-card-print-mode .id-card-back-head{gap:3mm;padding:1mm 4mm}
+  body.id-card-print-mode .id-card-back-logo{width:24mm;height:8mm;padding:0}
+  body.id-card-print-mode .id-card-back-brand{font-size:4.5pt;letter-spacing:1px}
+  body.id-card-print-mode .id-card-back-main{gap:4mm;padding:2mm 4mm}
+  body.id-card-print-mode .id-card-back-copy{max-width:none;gap:2mm}
+  body.id-card-print-mode .id-card-back-copy strong{font-size:6pt;letter-spacing:1px}
+  body.id-card-print-mode .id-card-back-copy p{font-size:5.3pt}
+  body.id-card-print-mode .id-card-back-note{padding:1.5mm 4mm;font-size:4.5pt}
+  body.id-card-print-mode .id-card-qr{width:25mm;height:25mm;padding:1mm}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* DoIt identity system */
+:root{--primary:#006da3;--primary-hover:#005783;--primary-light:#e8f6ff;--bg:#f2f6fb;--ink:#102b49;--border:#dce6f0;--shadow:0 12px 32px #00204609}
+body{background:radial-gradient(ellipse at 90% 0,#dcefff,transparent 45%),#f2f6fb}
+header{border-bottom:3px solid #09aaeb;box-shadow:0 6px 28px #00204620}
+.brand-logo{width:112px;height:58px}.brand-product{letter-spacing:1.6px}
+.card{border-radius:20px;padding:28px}.narrow{border-top:4px solid #0aaceb;box-shadow:0 24px 70px #00204615}
+h1,h2{color:#002046}label{color:#29445f}input,select,textarea{border-color:#cedce8;border-radius:10px}input:focus,select:focus,textarea:focus{box-shadow:0 0 0 4px #0aaceb20;border-color:#069bd7}
+button,.btn{min-height:44px;border-radius:10px;box-shadow:0 3px 8px #0020460a}button.secondary,.btn.secondary{border-color:#cce5f4;background:#edf8ff;color:#006395}button.secondary:hover,.btn.secondary:hover{background:#ddf1ff}
+button:focus-visible,.btn:focus-visible,a:focus-visible{outline-color:#0aaceb}
+.stat-box{border-radius:16px;border-top:3px solid #0aaceb;padding:22px;background:linear-gradient(145deg,#fff,#f7fbff)}.stat-box .val{font-size:34px;letter-spacing:-1px;color:#002046}.stat-box .title{letter-spacing:1px;font-size:10px}
+th{background:#edf4fa;color:#38536c}tr:hover td{background:#f3faff}.tabs{gap:8px;overflow-x:auto}.tab{min-height:44px;white-space:nowrap}.tab.active{background:#002046;color:white}.timeline-item{background:#f7faff}.notice{background:#ecf5fc;color:#2c506e}
+@media(max-width:600px){main{margin:20px auto;padding:0 14px 28px}.card{padding:20px;border-radius:16px}.brand-logo{width:85px;height:46px}.brand strong{font-size:15px}.brand-product{font-size:8px}.grid-4{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat-box{padding:15px}.stat-box .val{font-size:28px}.narrow{margin:5vh auto}.row{gap:10px}input,select,textarea{font-size:16px}header{gap:8px}}
+.id-card-sheet{width:54mm;height:85.6mm;border:0;border-radius:3mm;flex:none;padding:0!important}
+.id-card-front{display:flex;flex-direction:column;background:#002046;color:white;justify-content:space-between}
+.id-card-front:before{display:none}.id-card-front:after{width:59mm;height:59mm;border:9mm solid #0aaceb;border-bottom-color:transparent;border-radius:50%;right:-23mm;top:23mm;box-shadow:none;transform:rotate(-12deg)}
+.id-card-front-head{padding:7mm 6mm;display:flex;flex-direction:column;align-items:flex-start;gap:1mm}.id-card-logo{width:36mm;height:18mm;object-fit:contain}.id-card-front-title{border:0;padding:0}.id-card-front-title small{font-size:5pt;letter-spacing:2px;color:#fff}.id-card-front-title strong{display:none}
+.id-card-front-bottom{display:flex;flex-direction:column;align-items:flex-start;background:none;padding:0 6mm 6mm;gap:7mm}.id-card-front-bottom:before{content:'EMPLOYEE';font-size:18pt;letter-spacing:1px;font-weight:800;color:white}.id-card-barcode-wrap{display:none}.id-card-serial-block{width:auto;gap:1.5mm}.id-card-serial-block small{color:#8ddaff;font-size:5pt;letter-spacing:1.5px}.id-card-serial{color:#fff;font-size:7pt;letter-spacing:1px}
+.id-card-back{background:#fff;display:flex;flex-direction:column;justify-content:space-between}.id-card-back:before{display:none}.id-card-back-head{background:#002046;padding:3mm 5mm;display:block}.id-card-back-logo{width:29mm;height:12mm}.id-card-back-brand{display:none}.id-card-back-main{padding:3mm 5mm;display:flex;flex-direction:column;gap:3mm;text-align:center}.id-card-qr{width:33mm;height:33mm;border:0;border-radius:0;padding:1mm}.id-card-back-copy{gap:2mm}.id-card-back-copy strong{color:#002046;font-size:7pt;letter-spacing:1px}.id-card-back-copy p{font-size:5.5pt;color:#52677d}.id-card-back-note{background:#002046;color:white;border-bottom:1.5mm solid #0aaceb;border-top:0;padding:4mm 5mm;font-size:5.5pt;line-height:1.6;text-align:center}
+@page idcard{size:54mm 85.6mm;margin:0}
+@media print{body.id-card-print-mode,body.id-card-print-mode main#app{width:54mm!important;height:auto!important;min-height:85.6mm!important}body.id-card-print-mode .id-card-sheet{width:54mm!important;height:85.6mm!important;padding:0!important}body.id-card-print-mode .id-card-front{display:flex}body.id-card-print-mode .id-card-front:after{width:59mm;height:59mm;right:-23mm;top:23mm}body.id-card-print-mode .id-card-front-head{padding:7mm 6mm}body.id-card-print-mode .id-card-logo{width:36mm;height:18mm}body.id-card-print-mode .id-card-front-bottom{padding:0 6mm 6mm;gap:7mm}body.id-card-print-mode .id-card-serial-block{width:auto}body.id-card-print-mode .id-card-back{display:flex}body.id-card-print-mode .id-card-back-head{padding:3mm 5mm}body.id-card-print-mode .id-card-back-logo{width:29mm;height:12mm}body.id-card-print-mode .id-card-back-main{padding:3mm 5mm;gap:3mm}body.id-card-print-mode .id-card-qr{width:33mm;height:33mm}body.id-card-print-mode .id-card-back-note{padding:4mm 5mm;font-size:5.5pt}}
+
+
+.final-card{width:54mm!important;height:85.6mm!important;padding:0!important;position:relative;background-image:url('/card-artwork.png');background-size:200% 100%;background-repeat:no-repeat;flex:none;overflow:hidden}
+.final-front{background-position:left center}.final-back{background-position:right center}
+.final-front-serial{position:absolute;right:3.8mm;top:74.8mm;font:600 6.8pt monospace;color:white;letter-spacing:.25px}
+.final-qr{position:absolute;top:25mm;left:12mm;width:30mm;height:30mm;background:#e8f2f6}
+.final-qr>img{display:block;width:100%;height:100%}.final-profile-icon{position:absolute;left:43%;top:43%;width:14%;height:14%}
+.final-back-serial{position:absolute;top:58.2mm;left:2mm;right:2mm;text-align:center;color:white;font:600 9pt monospace;letter-spacing:.35px}
+.final-scan-label{position:absolute;top:63mm;left:0;right:0;text-align:center;color:white;font-size:7pt;letter-spacing:.3px}
+@media print{html:has(body.id-card-print-mode){width:54mm!important;height:auto!important}body.id-card-print-mode .final-card{width:54mm!important;height:85.6mm!important;padding:0!important;background-size:200% 100%!important}}
+body.profile-only #headerInstallBtn,body.profile-only .install-banner{display:none!important}
 </style>
 </head>
 <body>
 <header>
   <div class="brand">
-    <strong>◈ DoIt Innovations</strong>
-    <span>ERP ATTENDANCE</span>
+    <img class="brand-logo" src="/doit-logo.png" alt="DoIt official logo">
+    <div class="brand-copy"><strong>Attendance</strong><span class="brand-product">DOIT INNOVATIONS</span></div>
   </div>
   <div class="row" style="gap:10px">
-    <button id="headerInstallBtn" onclick="triggerPwaInstall()" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:5px">📲 Download App</button>
+    <button id="headerInstallBtn" aria-label="Install attendance app" onclick="triggerPwaInstall()" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:5px">📲 Download App</button>
     <div id="headerAuth" class="row"></div>
   </div>
 </header>
@@ -119,7 +300,7 @@ let stream=null;
 let activeMonth=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit'}).format(new Date());
 
 // PWA Service Worker & Install Prompt
-if('serviceWorker' in navigator){
+if('serviceWorker' in navigator && !location.pathname.startsWith('/profile/')){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('/sw.js').catch(()=>{});
   });
@@ -149,8 +330,8 @@ function installBannerHtml(){
       <div class="row" style="gap:12px">
         <div class="install-icon">📲</div>
         <div>
-          <strong>Download to Home Screen (Chrome App)</strong>
-          <p>Install DoIt ERP like an app for instant 1-tap QR attendance scanning.</p>
+          <strong>Add Attendance to Your Home Screen</strong>
+          <p>Install DoIt like an app for instant 1-tap QR attendance scanning.</p>
         </div>
       </div>
       <div class="row" style="gap:8px">
@@ -197,7 +378,7 @@ window.showInstallInstructionsModal=function(){
           <div class="install-icon" style="background:var(--primary-light);color:var(--primary)">📲</div>
           <div>
             <h2 style="margin:0;font-size:18px">Download to Home Screen</h2>
-            <p style="margin:2px 0 0;font-size:12px">Install DoIt ERP as a Chrome App on your device</p>
+            <p style="margin:2px 0 0;font-size:12px">Install DoIt as a Chrome App on your device</p>
           </div>
         </div>
         <button class="secondary" onclick="document.querySelector('#pwaGuideModal')?.remove()">✕ Close</button>
@@ -217,7 +398,7 @@ window.showInstallInstructionsModal=function(){
             </div>
             <div class="install-step-item">
               <span class="step-num">3</span>
-              <div>Tap <strong>Add</strong> in the top-right corner. The DoIt ERP app will be placed directly on your phone&#39;s Home screen!</div>
+              <div>Tap <strong>Add</strong> in the top-right corner. The DoIt app will be placed directly on your phone&#39;s Home screen!</div>
             </div>
           </div>
         \` : isAndroid ? \`
@@ -233,7 +414,7 @@ window.showInstallInstructionsModal=function(){
             </div>
             <div class="install-step-item">
               <span class="step-num">3</span>
-              <div>Tap <strong>Install</strong>. DoIt ERP will download onto your Home screen as a standalone app!</div>
+              <div>Tap <strong>Install</strong>. DoIt will download onto your Home screen as a standalone app!</div>
             </div>
           </div>
         \` : \`
@@ -245,11 +426,11 @@ window.showInstallInstructionsModal=function(){
             </div>
             <div class="install-step-item">
               <span class="step-num">2</span>
-              <div>Click the <strong>Install DoIt ERP</strong> icon (<span style="font-size:15px">⊕</span> or computer icon).</div>
+              <div>Click the <strong>Install DoIt</strong> icon (<span style="font-size:15px">⊕</span> or computer icon).</div>
             </div>
             <div class="install-step-item">
               <span class="step-num">3</span>
-              <div>Click <strong>Install</strong> to add DoIt ERP to your desktop apps and taskbar!</div>
+              <div>Click <strong>Install</strong> to add DoIt to your desktop apps and taskbar!</div>
             </div>
           </div>
         \`}
@@ -285,32 +466,28 @@ function msg(id,s,cls=''){
 
 // ---------------- LOGIN VIEW ----------------
 function loginView(){
-  headerAuth.innerHTML='<button class="secondary" id="adminHeaderBtn">Admin Portal</button>';
-  document.querySelector('#adminHeaderBtn').onclick=()=>{
-    history.pushState(null,'','/admin');
-    if(adminPassword){adminPortalView();}else{adminLoginView();}
-  };
+  headerAuth.innerHTML='<a class="btn secondary" href="/admin" id="adminHeaderBtn">Management Sign In</a>';
   app.innerHTML=\`
     \${installBannerHtml()}
     <section class="card narrow">
       <div style="text-align:center;margin-bottom:16px">
-        <span class="badge present">DOIT INNOVATIONS ERP</span>
-        <h1 style="margin-top:12px">Employee Sign In</h1>
-        <p>Access your monthly attendance record, check-in history, and punch log.</p>
+        <span class="badge present">DOIT INNOVATIONS</span>
+        <h1 style="margin-top:12px">Staff Sign In</h1>
+        <p>View your attendance history and record your arrival or departure.</p>
       </div>
       <form id="loginForm">
-        <label>Username or Employee ID</label>
-        <input name="username" placeholder="e.g. rahul.sharma" autocomplete="username" required>
-        <label>Password</label>
-        <input name="password" type="password" placeholder="••••••••" autocomplete="current-password" required>
-        <div id="loginMsg" class="notice hidden"></div>
-        <button style="width:100%;margin-top:18px">Sign In to ERP</button>
+        <label for="loginUsername">Username or Staff ID</label>
+        <input id="loginUsername" name="username" placeholder="e.g. alex.morgan" autocomplete="username" spellcheck="false" required>
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+        <div id="loginMsg" class="notice hidden" aria-live="polite"></div>
+        <button style="width:100%;margin-top:18px">Sign In</button>
       </form>
       <hr style="border:0;border-top:1px solid var(--border);margin:24px 0 16px">
       <div style="text-align:center">
-        <a href="/register" class="btn secondary" style="width:100%;margin-bottom:14px">New Employee? Register Here →</a>
-        <p class="muted" style="margin-bottom:10px">Need admin management access?</p>
-        <button class="secondary" id="adminLoginBtn" style="width:100%">Sign In as Admin</button>
+        <a href="/register" class="btn secondary" style="width:100%;margin-bottom:14px">Create a Staff Account →</a>
+        <p class="muted" style="margin-bottom:10px">For authorized management access</p>
+        <a class="btn secondary" href="/admin" id="adminLoginBtn" style="width:100%">Management Sign In</a>
       </div>
     </section>
   \`;
@@ -324,31 +501,27 @@ function loginView(){
       msg('#loginMsg',err.message,'error');
     }
   };
-  document.querySelector('#adminLoginBtn').onclick=()=>{
-    history.pushState(null,'','/admin');
-    if(adminPassword){adminPortalView();}else{adminLoginView();}
-  };
 }
 
 // ---------------- ADMIN LOGIN VIEW (INLINE FORM) ----------------
 function adminLoginView(initialError=''){
-  headerAuth.innerHTML='<a href="/" class="btn secondary" style="padding:6px 12px;font-size:12px">Employee Portal</a>';
+  headerAuth.innerHTML='<a href="/" class="btn secondary" style="padding:8px 12px;font-size:12px">Team Sign In</a>';
   app.innerHTML=\`
     <section class="card narrow">
       <div style="text-align:center;margin-bottom:16px">
-        <span class="badge present">DOIT MANAGEMENT</span>
-        <h1 style="margin-top:12px">Manager & Admin Sign In</h1>
-        <p>Enter the administrative password to manage employees, access company timesheets, view scan logs, and configure office geofences.</p>
+        <span class="badge present">MANAGEMENT PORTAL</span>
+        <h1 style="margin-top:12px">Management Sign In</h1>
+        <p>Manage team access, review attendance, and update office settings.</p>
       </div>
       <form id="adminLoginForm">
-        <label>Admin Password</label>
-        <input name="adminPassword" id="adminPassInput" type="password" placeholder="••••••••" autocomplete="current-password" required autofocus>
-        <div id="adminLoginMsg" class="notice \${initialError ? 'error' : 'hidden'}">\${esc(initialError)}</div>
-        <button id="adminSubmitBtn" style="width:100%;margin-top:18px">Access Management Dashboard</button>
+        <label for="adminPassInput">Management Password</label>
+        <input name="adminPassword" id="adminPassInput" type="password" placeholder="Enter management password" autocomplete="current-password" required>
+        <div id="adminLoginMsg" class="notice \${initialError ? 'error' : 'hidden'}" aria-live="polite">\${esc(initialError)}</div>
+        <button id="adminSubmitBtn" style="width:100%;margin-top:18px">Open Management Dashboard</button>
       </form>
       <hr style="border:0;border-top:1px solid var(--border);margin:24px 0 16px">
       <div style="text-align:center">
-        <a href="/" id="backToEmpBtn" class="btn secondary" style="width:100%">← Back to Employee Sign In</a>
+        <a href="/" id="backToEmpBtn" class="btn secondary" style="width:100%">← Back to Team Sign In</a>
       </div>
     </section>
   \`;
@@ -379,33 +552,32 @@ function adminLoginView(initialError=''){
 
 // ---------------- REGISTER VIEW ----------------
 function registerView(){
-  headerAuth.innerHTML='<a href="/" class="btn secondary" style="padding:6px 12px;font-size:12px">Back to Sign In</a>';
-  const autoCode=new URLSearchParams(location.search).get('code')||'DOIT2026';
+  headerAuth.innerHTML='<a href="/" class="btn secondary" style="padding:8px 12px;font-size:12px">Back to Sign In</a>';
   app.innerHTML=\`
     <section class="card narrow">
       <div style="text-align:center;margin-bottom:16px">
-        <span class="badge present">DOIT INNOVATIONS ONBOARDING</span>
-        <h1 style="margin-top:12px">Employee Registration</h1>
-        <p>Create your attendance account and set your personal password.</p>
+        <span class="badge present">TEAM ONBOARDING</span>
+        <h1 style="margin-top:12px">Create Your Account</h1>
+        <p>Create an account to access your attendance and daily work summaries.</p>
       </div>
       <form id="regForm">
-        <label>Full Name</label>
+        <label for="regName">Full Name</label>
         <input name="name" id="regName" placeholder="e.g. Rahul Verma" required autofocus>
 
-        <label>Choose a Username</label>
-        <input name="username" id="regUsername" placeholder="e.g. rahul.verma" autocomplete="username" required>
+        <label for="regUsername">Choose a Username</label>
+        <input name="username" id="regUsername" placeholder="e.g. alex.morgan" autocomplete="username" spellcheck="false" required>
 
-        <label>Create Password</label>
-        <input name="password" type="password" placeholder="Min. 6 characters" minlength="6" autocomplete="new-password" required>
+        <label for="regPassword">Create Password</label>
+        <input id="regPassword" name="password" type="password" placeholder="At least 10 characters" minlength="10" autocomplete="new-password" required>
 
-        <label>Confirm Password</label>
-        <input name="confirmPassword" type="password" placeholder="Repeat your password" minlength="6" autocomplete="new-password" required>
+        <label for="regConfirmPassword">Confirm Password</label>
+        <input id="regConfirmPassword" name="confirmPassword" type="password" placeholder="Enter your password again" minlength="10" autocomplete="new-password" required>
 
-        <div id="regMsg" class="notice hidden"></div>
-        <button id="regSubmitBtn" style="width:100%;margin-top:18px">Register & Set Password</button>
+        <div id="regMsg" class="notice hidden" aria-live="polite"></div>
+        <button id="regSubmitBtn" style="width:100%;margin-top:18px">Create Account</button>
       </form>
       <div style="text-align:center;margin-top:16px">
-        <p class="muted">Already registered? <a href="/" style="color:var(--primary);font-weight:600">Sign in here</a></p>
+        <p class="muted">Already registered? <a href="/" style="color:var(--primary);font-weight:650">Sign in here</a></p>
       </div>
     </section>
   \`;
@@ -437,22 +609,21 @@ function registerView(){
         password:pass,
         department:'Operations',
         role:'Associate',
-        regCode:autoCode
       });
       // Show rich in-page confirmation screen
       app.innerHTML=\`
         <section class="card narrow" style="text-align:center;padding:36px 20px">
           <div style="font-size:44px;margin-bottom:12px">🎉</div>
-          <span class="badge present">REGISTRATION SUCCESSFUL</span>
-          <h1 style="margin-top:12px">Welcome to DoIt Innovations!</h1>
-          <p style="margin-bottom:16px">Your account has been created. Here are your ERP profile details:</p>
+          <span class="badge present">ACCOUNT READY</span>
+          <h1 style="margin-top:12px">Your Account Is Ready</h1>
+          <p style="margin-bottom:16px">Keep these sign-in details somewhere safe.</p>
           <div style="background:#f0f7f4;border:1px solid #c8e2d7;border-radius:12px;padding:16px;margin:20px 0;text-align:left">
             <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #d1e7dd">
-              <span class="muted">Employee Name:</span>
+              <span class="muted">Name:</span>
               <strong>\${esc(res.name)}</strong>
             </div>
             <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #d1e7dd">
-              <span class="muted">Employee Code:</span>
+              <span class="muted">Staff ID:</span>
               <strong style="color:var(--primary)">\${esc(res.emp_code)}</strong>
             </div>
             <div style="display:flex;justify-content:space-between;padding:6px 0">
@@ -460,7 +631,7 @@ function registerView(){
               <strong>\${esc(res.username)}</strong>
             </div>
           </div>
-          <a href="/" class="btn" style="width:100%;text-align:center;display:block">Go to My Attendance Dashboard →</a>
+          <a href="/" class="btn" style="width:100%;text-align:center;display:block">Open Attendance →</a>
         </section>
       \`;
     }catch(err){
@@ -490,14 +661,15 @@ async function employeeView(){
   };
 
   const isAtWork=me.todaySummary?.currentState==='in';
-  const todayBadge=isAtWork?'<span class="badge present">● Currently At Work</span>':me.todaySummary?.punches?.length?'<span class="badge in">✓ Completed for Today</span>':'<span class="badge pending">○ Not Checked In Today</span>';
+  const isDayEnded=!!me.todaySummary?.dayEnded;
+  const todayBadge=isAtWork?'<span class="badge present">● Checked In</span>':isDayEnded?'<span class="badge in">✓ Day Complete</span>':me.todaySummary?.punches?.length?'<span class="badge pending">○ On Break</span>':'<span class="badge pending">○ Not Checked In Today</span>';
 
   app.innerHTML=\`
     \${installBannerHtml()}
     <div class="between" style="margin-bottom:18px">
       <div>
         <h1>Welcome, \${esc(me.employee.name)}</h1>
-        <p>\${esc(me.employee.role)} · \${esc(me.employee.department)} Department · ID: <strong>\${esc(me.employee.emp_code||'EMP')}</strong></p>
+        <p>Staff ID: <strong>\${esc(me.employee.emp_code||'EMP')}</strong></p>
       </div>
       <div>\${todayBadge}</div>
     </div>
@@ -506,12 +678,10 @@ async function employeeView(){
     <section class="card">
       <div class="between">
         <div>
-          <h2>Today&#39;s Attendance Punch</h2>
+          <h2>Record Attendance</h2>
           <p>Scan the office entrance QR poster to record arrival or departure with GPS verification.</p>
         </div>
-        <button id="openScannerBtn" style="min-width:200px">
-          \${isAtWork?'Check Out / Stepped Outside (Scan QR)':'Check In / Arrived (Scan QR)'}
-        </button>
+        \${isAtWork?'<div class="attendance-actions"><button id="breakScannerBtn" class="secondary">Start Break · Scan QR</button><button id="endDayScannerBtn">End My Day · Scan QR</button></div>':isDayEnded?'<button id="openScannerBtn" disabled>Day Complete</button>':'<button id="openScannerBtn" style="min-width:200px">'+(me.todaySummary?.punches?.length?'Return from Break · Scan QR':'Check In · Scan QR')+'</button>'}
       </div>
       <div id="scannerBox" class="hidden" style="margin-top:16px">
         <video id="scannerVideo" playsinline autoplay muted></video>
@@ -521,17 +691,18 @@ async function employeeView(){
         </div>
       </div>
       <div id="scanMsg" class="notice hidden"></div>
+      <div id="workReportArea"></div>
       
       <div class="grid-4" style="margin-top:20px;margin-bottom:0">
         <div class="stat-box">
           <div class="title">First In (Arrival)</div>
           <div class="val" style="font-size:20px">\${timeStr(me.todaySummary?.firstIn)}</div>
-          <div class="sub">Today&#39;s first entrance</div>
+          <div class="sub">First arrival today</div>
         </div>
         <div class="stat-box">
           <div class="title">Last Out (Departure)</div>
           <div class="val" style="font-size:20px">\${timeStr(me.todaySummary?.lastOut)}</div>
-          <div class="sub">Today&#39;s latest exit</div>
+          <div class="sub">Last departure today</div>
         </div>
         <div class="stat-box">
           <div class="title">Time In Office</div>
@@ -539,23 +710,23 @@ async function employeeView(){
           <div class="sub">Active on-site duration</div>
         </div>
         <div class="stat-box">
-          <div class="title">Outside / Breaks</div>
+          <div class="title">Time Away from Office</div>
           <div class="val" style="font-size:20px;color:var(--muted)">\${me.todaySummary?.outsideDuration||'0m'}</div>
           <div class="sub">Time spent out of office</div>
         </div>
       </div>
     </section>
 
-    <!-- Today's Movement & Punch Timeline -->
+    <!-- Today's Movement & Timeline -->
     <section class="card">
       <div class="between" style="margin-bottom:12px">
         <div>
-          <h2>Today&#39;s Movement Timeline (When Came In / Went Outside)</h2>
-          <p>Real-time log of every time you entered the office or stepped outside today.</p>
+          <h2>Today&#39;s Attendance Activity</h2>
+          <p>A record of each office arrival and departure today.</p>
         </div>
         <div>
           <span class="badge \${isAtWork?'present':'absent'}">
-            \${isAtWork?'🟢 Currently In Office':'🔴 Currently Outside / Away'}
+          \${isAtWork?'🟢 Checked In':isDayEnded?'✓ Day Complete':me.todaySummary?.punches?.length?'◷ On Break':'○ Not Checked In'}
           </span>
         </div>
       </div>
@@ -566,10 +737,10 @@ async function employeeView(){
             <div class="timeline-item">
               <div class="row" style="gap:10px">
                 <span class="timeline-badge \${p.kind}">
-                  \${p.kind==='in'?'🟢 CAME IN':'🔴 WENT OUTSIDE'}
+                  \${p.kind==='in'?'🟢 CHECKED IN':p.eventType==='day_end'?'✓ DAY ENDED':'◷ BREAK STARTED'}
                 </span>
                 <strong style="font-size:15px;letter-spacing:0.3px">\${p.timeFormatted}</strong>
-                <span style="font-size:12px;color:var(--muted)">Punch #\${idx + 1}</span>
+                <span style="font-size:12px;color:var(--muted)">Entry #\${idx + 1}</span>
               </div>
               <div style="font-size:13px;font-weight:600;color:\${p.kind==='in'?'var(--success-ink)':'var(--danger-ink)'}">
                 \${esc(p.intervalText)}
@@ -580,20 +751,20 @@ async function employeeView(){
         <div class="between" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
           <div style="font-size:13px;color:var(--muted)">
             Total In Office: <strong style="color:var(--ink)">\${me.todaySummary.hoursWorked}</strong> · 
-            Outside / Breaks: <strong style="color:var(--ink)">\${me.todaySummary.outsideDuration}</strong>
+            Time Away from Office: <strong style="color:var(--ink)">\${me.todaySummary.outsideDuration}</strong>
           </div>
           <div style="font-size:12px;color:var(--muted)">
-            Total Punches Today: <strong>\${me.todaySummary.punches.length}</strong>
+            Total Entries Today: <strong>\${me.todaySummary.punches.length}</strong>
           </div>
         </div>
       \` : \`
         <div style="text-align:center;padding:22px 12px;color:var(--muted);font-size:14px">
-          No punches recorded yet today. Scan the entrance poster to record your arrival.
+          No attendance entries recorded yet today. Scan the entrance poster to record your arrival.
         </div>
       \`}
     </section>
 
-    <!-- Monthly ERP Sheet & History -->
+    <!-- Monthly Attendance History -->
     <section class="card">
       <div class="between" style="margin-bottom:14px">
         <div>
@@ -614,9 +785,9 @@ async function employeeView(){
           <div class="sub">Attended on-site</div>
         </div>
         <div class="stat-box">
-          <div class="title">Days Absent</div>
-          <div class="val" style="color:var(--danger-ink)">\${me.monthSummary.absentDays} <small style="font-size:14px;color:var(--muted)">days</small></div>
-          <div class="sub">Missed workdays</div>
+          <div class="title">Days Without Scans</div>
+          <div class="val">\${me.monthSummary.noScanDays} <small style="font-size:14px;color:var(--muted)">days</small></div>
+          <div class="sub">No attendance entries</div>
         </div>
         <div class="stat-box">
           <div class="title">Total Hours Worked</div>
@@ -624,9 +795,9 @@ async function employeeView(){
           <div class="sub">In selected month</div>
         </div>
         <div class="stat-box">
-          <div class="title">Attendance Rate</div>
-          <div class="val">\${me.monthSummary.attendanceRate}%</div>
-          <div class="sub">\${me.monthSummary.presentDays} of \${me.monthSummary.workingDaysSoFar} workdays</div>
+          <div class="title">Public Holidays</div>
+          <div class="val">\${me.monthSummary.holidayDays} <small style="font-size:14px;color:var(--muted)">days</small></div>
+          <div class="sub">Added by management</div>
         </div>
       </div>
 
@@ -638,20 +809,20 @@ async function employeeView(){
               <th>Date</th>
               <th>Day</th>
               <th>Status</th>
-              <th>Movements &amp; Punches (When Came / Went Out)</th>
+              <th>Attendance Activity</th>
               <th>In Office</th>
-              <th>Outside</th>
+              <th>Time Away</th>
               <th>Breakdown</th>
             </tr>
           </thead>
           <tbody>
             \${me.calendar.map(day=>\`
               <tr>
-                <td><strong>\${esc(day.date)}</strong></td>
+                <td><strong>\${esc(day.date)}</strong>\${day.isHoliday?'<br><small style="color:#8a4b08">'+esc(day.holidayName)+'</small>':''}</td>
                 <td>\${esc(day.dayOfWeek)}</td>
                 <td>
                   <span class="badge \${day.status.toLowerCase()}">
-                    \${day.status==='Present'?'✓ Present':day.status==='Absent'?'✕ Absent':day.status==='Weekend'?'Weekend':'—'}
+                    \${day.status==='Present'?'✓ Present':day.status==='Holiday'?'Holiday':day.status==='No Activity'?'No Activity':day.status==='Absent'?'✕ Absent':day.status==='Weekend'?'Weekend':'—'}
                   </span>
                 </td>
                 <td>
@@ -663,7 +834,7 @@ async function employeeView(){
                         </span>
                       \`).join('<span class="flow-arrow">➔</span>')}
                     </div>
-                  \` : (day.status==='Absent'?'<span style="color:var(--danger-ink);font-size:12px">✕ No Punches</span>':(day.status==='Weekend'?'<span style="color:var(--muted);font-size:12px">Weekend</span>':'—'))}
+                  \` : (day.status==='Holiday'?'<span style="color:#8a4b08;font-size:12px">Holiday · no scan</span>':day.status==='Absent'?'<span style="color:var(--danger-ink);font-size:12px">✕ No Entries</span>':(day.status==='Weekend'?'<span style="color:var(--muted);font-size:12px">Weekend</span>':'—'))}
                 </td>
                 <td style="font-weight:600">\${day.duration||'—'}</td>
                 <td style="color:var(--muted)">\${day.outsideDuration||'0m'}</td>
@@ -680,18 +851,18 @@ async function employeeView(){
                   <td colspan="7" style="padding:10px 16px">
                     <div class="breakdown-box">
                       <div class="between" style="margin-bottom:8px">
-                        <strong style="font-size:13px">Exact Punch Log for \${esc(day.date)} (\${esc(day.dayOfWeek)})</strong>
-                        <span style="font-size:12px;color:var(--muted)">In Office: <strong style="color:var(--ink)">\${day.duration}</strong> · Outside/Break: <strong style="color:var(--ink)">\${day.outsideDuration}</strong></span>
+                        <strong style="font-size:13px">Attendance Details for \${esc(day.date)} (\${esc(day.dayOfWeek)})</strong>
+                        <span style="font-size:12px;color:var(--muted)">In Office: <strong style="color:var(--ink)">\${day.duration}</strong> · Time Away: <strong style="color:var(--ink)">\${day.outsideDuration}</strong></span>
                       </div>
                       <div class="timeline" style="margin-top:6px;gap:6px">
                         \${day.punches.map((p, idx)=>\`
                           <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f4f7f5;border-radius:6px;font-size:12px">
                             <div class="row" style="gap:8px">
                               <span class="timeline-badge \${p.kind}" style="padding:2px 7px;font-size:11px">
-                                \${p.kind==='in'?'🟢 CAME IN':'🔴 WENT OUTSIDE'}
+                                \${p.kind==='in'?'🟢 CHECKED IN':'🔴 CHECKED OUT'}
                               </span>
                               <strong>\${p.timeFormatted}</strong>
-                              <span style="color:var(--muted)">Punch #\${idx + 1}</span>
+                              <span style="color:var(--muted)">Entry #\${idx + 1}</span>
                             </div>
                             <div style="font-weight:600;color:\${p.kind==='in'?'var(--success-ink)':'var(--danger-ink)'}">
                               \${esc(p.intervalText)}
@@ -710,8 +881,13 @@ async function employeeView(){
     </section>
   \`;
 
-  document.querySelector('#openScannerBtn').onclick=startScanner;
+  document.querySelector('#openScannerBtn')?.addEventListener('click',()=>startScanner('arrival'));
+  document.querySelector('#breakScannerBtn')?.addEventListener('click',()=>startScanner('break'));
+  document.querySelector('#endDayScannerBtn')?.addEventListener('click',()=>startScanner('end'));
   document.querySelector('#closeScannerBtn').onclick=stopScanner;
+  if(isDayEnded&&!me.todaySummary?.workReport)showWorkReportForm();
+  else if(me.todaySummary?.workReport)showWorkReportSaved(me.todaySummary.workReport.summary);
+  bindWorkReportForm();
   document.querySelector('#monthPicker').onchange=e=>{
     activeMonth=e.target.value;
     employeeView();
@@ -735,7 +911,40 @@ async function loadQrDetector(){
   return null;
 }
 
-async function startScanner(){
+function showWorkReportForm(){
+  const area=document.querySelector('#workReportArea');
+  if(!area)return;
+  area.innerHTML=\`<section class="card" style="margin:18px 0 0;background:#f8fbf9;border-color:#cfe3d9"><span class="badge present">DAY ENDED</span><h2 style="margin-top:12px">What did you work on today?</h2><p>Your end-of-day summary is requested after your final departure scan.</p><form id="workReportForm"><label for="workSummary">Work completed</label><textarea id="workSummary" name="summary" rows="5" maxlength="4000" placeholder="Summarize tasks completed, progress made, or anything to follow up…" required style="width:100%;min-width:0;padding:12px 14px;border:1px solid #cbd8d1;border-radius:11px;font:inherit;resize:vertical"></textarea><div id="workReportMsg" class="notice hidden" aria-live="polite"></div><button id="workReportSubmit" style="width:100%;margin-top:14px">Submit Work Summary</button></form></section>\`;
+  bindWorkReportForm();
+  area.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function showWorkReportSaved(summary){
+  const area=document.querySelector('#workReportArea');
+  if(!area)return;
+  area.innerHTML=\`<section class="card" style="margin:18px 0 0;background:#f8fbf9;border-color:#cfe3d9"><span class="badge present">SUMMARY SUBMITTED</span><h2 style="margin-top:12px">Today&#39;s Work Summary</h2><p style="white-space:pre-wrap;color:var(--ink)">\${esc(summary)}</p></section>\`;
+}
+
+function bindWorkReportForm(){
+  const form=document.querySelector('#workReportForm');
+  if(!form)return;
+  form.onsubmit=async e=>{
+    e.preventDefault();
+    const submit=document.querySelector('#workReportSubmit');
+    submit.disabled=true;
+    try{
+      const summary=new FormData(form).get('summary');
+      const result=await post('/api/work-report',{summary});
+      showWorkReportSaved(summary);
+      msg('#scanMsg',result.message,'success');
+    }catch(err){
+      submit.disabled=false;
+      msg('#workReportMsg',err.message,'error');
+    }
+  };
+}
+
+async function startScanner(scanAction='arrival'){
   try{
     const detector=await loadQrDetector();
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
@@ -777,10 +986,14 @@ async function startScanner(){
           const loc=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(
             p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy}),
             err=>reject(Error('GPS permission required: '+err.message)),
-            {enableHighAccuracy:true,timeout:12000}
+            {enableHighAccuracy:true,timeout:20000,maximumAge:0}
           ));
-          const res=await post('/api/scan',{qrCode:rawCode,location:loc});
+          const res=await post('/api/scan',{qrCode:rawCode,location:loc,action:scanAction});
           msg('#scanMsg',res.message,'success');
+          if(res.needsWorkReport){
+            showWorkReportForm();
+            return;
+          }
           setTimeout(()=>location.reload(),1400);
           return;
         }
@@ -818,8 +1031,8 @@ async function adminPortalView(){
     ]);
 
     headerAuth.innerHTML=\`
-      <span style="color:#c0ded4;font-size:13px">Admin Mode</span>
-      <button class="secondary" id="employeeViewBtn" style="padding:6px 12px;font-size:12px">Employee View</button>
+      <span style="color:#c0ded4;font-size:13px">Management</span>
+      <button class="secondary" id="employeeViewBtn" style="padding:6px 12px;font-size:12px">Team View</button>
       <button class="danger" id="adminLogoutBtn" style="padding:6px 12px;font-size:12px">Sign Out</button>
     \`;
     document.querySelector('#employeeViewBtn').onclick=()=>{
@@ -836,8 +1049,8 @@ async function adminPortalView(){
     app.innerHTML=\`
       <div class="between" style="margin-bottom:18px">
         <div>
-          <h1>Enterprise HR & Attendance ERP</h1>
-          <p>Company-wide attendance management, employee roster, monthly timesheets, and entrance geofencing.</p>
+          <h1>Attendance Overview</h1>
+          <p>Manage team access, review attendance, and maintain office check-in settings.</p>
         </div>
         <div class="row">
           <a href="/poster" target="_blank" class="btn secondary">Print Office Poster ↗</a>
@@ -847,19 +1060,19 @@ async function adminPortalView(){
       <!-- General Registration Link Banner -->
       <div class="card" style="background:#f0f7f4;border-color:#bde0d3;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
         <div>
-          <strong style="color:var(--primary);font-size:14px">📢 General Employee Onboarding Link</strong>
-          <p style="font-size:12px;color:var(--muted);margin-top:2px">Send this general link to all employees so they can self-register instantly:</p>
+          <strong style="color:var(--primary);font-size:14px">Team Member Sign-Up</strong>
+          <p style="font-size:12px;color:var(--muted);margin-top:2px">Share this link to let people create an account. No invitation code is needed.</p>
           <code id="regLinkDisplay" style="background:#fff;padding:5px 9px;border-radius:6px;border:1px solid #c8e2d7;font-size:13px;margin-top:6px;display:inline-block;color:var(--primary);font-weight:700">\${location.origin}/register</code>
         </div>
-        <button class="secondary" id="copyRegLinkBtn">Copy Invite Link</button>
+        <button class="secondary" id="copyRegLinkBtn" type="button">Copy Invite Link</button>
       </div>
 
       <!-- Executive Overview -->
       <div class="grid-4">
         <div class="stat-box">
-          <div class="title">Active Employees</div>
+          <div class="title">Team Members</div>
           <div class="val">\${d.totalEmployees}</div>
-          <div class="sub">Total registered in ERP</div>
+          <div class="sub">Accounts in your organization</div>
         </div>
         <div class="stat-box">
           <div class="title">Present Today</div>
@@ -867,43 +1080,33 @@ async function adminPortalView(){
           <div class="sub">Currently on-site</div>
         </div>
         <div class="stat-box">
-          <div class="title">Absent Today</div>
-          <div class="val" style="color:var(--danger-ink)">\${d.absentToday}</div>
-          <div class="sub">Not checked in</div>
+          <div class="title">No Scan Today</div>
+          <div class="val">\${d.absentToday}</div>
+          <div class="sub">No attendance recorded</div>
         </div>
         <div class="stat-box">
-          <div class="title">Today&#39;s Punches</div>
+          <div class="title">Today&#39;s Scans</div>
           <div class="val">\${d.todayPunchesCount}</div>
           <div class="sub">Total scans recorded</div>
         </div>
       </div>
 
-      <!-- Add Employee & Office Settings Grid -->
+      <!-- Add team member and office settings -->
       <div class="grid-2">
         <div class="card">
-          <h2>Add New Employee</h2>
+          <h2>Add Staff</h2>
           <form id="addEmpForm">
             <label>Full Name</label>
             <input name="name" placeholder="e.g. Rahul Sharma" required>
-            <div class="row">
-              <div style="flex:1">
-                <label>Department</label>
-                <input name="department" placeholder="e.g. Engineering" value="Operations">
-              </div>
-              <div style="flex:1">
-                <label>Role / Title</label>
-                <input name="role" placeholder="e.g. Senior Specialist" value="Specialist">
-              </div>
-            </div>
-            <button style="margin-top:16px;width:100%">Create Employee Account</button>
+            <button style="margin-top:16px;width:100%">Create Staff Account</button>
           </form>
           <div id="empCreds" class="notice hidden"></div>
           <div id="addEmpMsg" class="notice hidden"></div>
         </div>
 
         <div class="card">
-          <h2>Office Geofence & Registration Settings</h2>
-          <p>Configure coordinates for authorized entrance punching and set employee onboarding security.</p>
+          <h2>Office Check-In Settings</h2>
+          <p>Set the office location and check-in radius for attendance scans.</p>
           <form id="officeSettingsForm">
             <label>Office Name</label>
             <input name="officeName" value="\${esc(s.officeName)}">
@@ -919,20 +1122,70 @@ async function adminPortalView(){
             </div>
             <label>Allowed Radius (metres)</label>
             <input name="radius" type="number" value="\${esc(s.radius)}">
-            <label>Company Registration Passcode</label>
-            <input name="regPasscode" value="\${esc(s.regPasscode||'DOIT2026')}" required>
-            <p class="muted" style="font-size:12px;margin:2px 0 10px">Required for employee onboarding on /register.</p>
             <button style="margin-top:16px">Save Office & Security Settings</button>
           </form>
           <div id="settingsMsg" class="notice hidden"></div>
         </div>
       </div>
 
-      <!-- Employee Directory & Monthly Performance -->
+      <section class="card">
+        <h2>Public Holidays</h2>
+        <p>Add official holidays by date. Team members may still check in and out on any holiday.</p>
+        <form id="holidayForm" class="row" style="align-items:end;margin-top:12px">
+          <div style="flex:1;min-width:160px"><label for="holidayDate">Holiday date</label><input id="holidayDate" name="date" type="date" required></div>
+          <div style="flex:2;min-width:180px"><label for="holidayName">Holiday name</label><input id="holidayName" name="name" maxlength="100" placeholder="e.g. Independence Day" required></div>
+          <button type="submit">Add Holiday</button>
+        </form>
+        <div id="holidayMsg" class="notice hidden" aria-live="polite"></div>
+        <div style="overflow-x:auto;margin-top:12px">
+          <table style="min-width:420px"><thead><tr><th>Date</th><th>Holiday</th><th>Action</th></tr></thead><tbody id="holidayRows">
+            \${s.publicHolidays.length?s.publicHolidays.map(h=>'<tr><td>'+esc(h.date)+'</td><td>'+esc(h.name)+'</td><td><button type="button" class="danger" style="padding:6px 10px;font-size:12px" data-date="'+esc(h.date)+'" onclick="removePublicHoliday(this.dataset.date)">Remove</button></td></tr>').join(''):'<tr><td colspan="3" class="muted">No additional public holidays added.</td></tr>'}
+          </tbody></table>
+        </div>
+      </section>
+
+      <section class="card" id="idCardInventory">
+        <div class="between" style="margin-bottom:12px">
+          <div><h2>ID Card Inventory</h2><p>Create generic cards before assigning them to people. Their QR links to the profile connected to that serial later.</p></div>
+          \${d.idCards.some(c=>!c.employee_id)?'<button class="secondary" type="button" id="printAllCardsBtn">Print unassigned cards</button>':''}
+        </div>
+        <form id="generateCardsForm" class="row" style="align-items:end;margin-bottom:12px">
+          <div style="width:150px"><label for="cardBatchCount">Number of cards</label><input id="cardBatchCount" name="count" type="number" min="1" max="100" value="10" required></div>
+          <button type="submit">Generate blank cards</button>
+        </form>
+        <div id="idCardsMsg" class="notice hidden" aria-live="polite"></div>
+        <div style="overflow-x:auto">
+          <table style="min-width:780px"><thead><tr><th>Card serial</th><th>RFID UID</th><th>Linked profile</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody>
+              \${d.idCards.length?d.idCards.map(c=>\`
+                <tr>
+                  <td><code>\${esc(c.card_serial)}</code></td>
+                  <td><code>\${esc(c.rfid_uid||'Not linked')}</code></td>
+                  <td>
+                    <select id="cardOwner-\${esc(c.card_serial)}" aria-label="Profile linked to \${esc(c.card_serial)}" style="min-width:210px;padding:7px 9px">
+                      <option value="">Unassigned</option>
+                      \${d.employees.map(e=>\`<option value="\${esc(e.id)}" \${c.employee_id===e.id?'selected':''}>\${esc(e.name)} · \${esc(e.emp_code||'')}</option>\`).join('')}
+                    </select>
+                  </td>
+                  <td>\${new Date(c.created_at).toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'})}</td>
+                  <td class="row" style="gap:5px">
+                    <button type="button" class="secondary" style="padding:5px 8px;font-size:11px" onclick="saveCardProfile('\${esc(c.card_serial)}')">Save link</button>
+                    <button type="button" class="secondary" style="padding:5px 8px;font-size:11px" onclick="assignCardRfid('\${esc(c.card_serial)}')">RFID</button>
+                    <a class="btn secondary" style="padding:5px 8px;font-size:11px" href="/card/\${encodeURIComponent(c.card_serial)}" target="_blank">Print</a>
+                    <button type="button" class="danger" style="padding:5px 8px;font-size:11px" onclick="deleteIdCard('\${esc(c.card_serial)}',this)">Delete</button>
+                  </td>
+                </tr>
+              \`).join(''):'<tr><td colspan="5" class="muted">No cards issued yet. Generate a batch to create printable, unassigned cards.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Team directory and monthly attendance -->
       <section class="card">
         <div class="between" style="margin-bottom:12px">
           <div>
-            <h2>Employee Attendance Records (ERP Roster)</h2>
+            <h2>Team Attendance</h2>
             <p>Monthly performance, days present, and today&#39;s real-time status.</p>
           </div>
           <div class="row">
@@ -945,13 +1198,11 @@ async function adminPortalView(){
           <table>
             <thead>
               <tr>
-                <th>Emp Code</th>
-                <th>Employee Name</th>
-                <th>Department</th>
-                <th>Role</th>
+                <th>Staff ID</th>
+                <th>Staff</th>
                 <th>Today&#39;s Status</th>
                 <th>Present (Month)</th>
-                <th>Absent (Month)</th>
+                <th>No Scan Days (Month)</th>
                 <th>Hours (Month)</th>
                 <th>Action</th>
               </tr>
@@ -961,15 +1212,13 @@ async function adminPortalView(){
                 <tr>
                   <td><code>\${esc(e.emp_code||'EMP')}</code></td>
                   <td><strong>\${esc(e.name)}</strong><br><small class="muted">@\${esc(e.username)}</small></td>
-                  <td>\${esc(e.department||'General')}</td>
-                  <td>\${esc(e.role||'Specialist')}</td>
                   <td>
                     <span class="badge \${e.todayState==='in'?'present':e.todayState==='out'?'in':'absent'}">
-                      \${e.todayState==='in'?'At Work':e.todayState==='out'?'Checked Out':'Not In'}
+                      \${e.todayState==='in'?'At Work':e.todayEventType==='break_start'?'On Break':e.todayState==='out'?'Day Complete':'Not In'}
                     </span>
                   </td>
                   <td style="color:var(--success-ink);font-weight:700">\${e.monthStats.presentDays} d</td>
-                  <td style="color:var(--danger-ink);font-weight:700">\${e.monthStats.absentDays} d</td>
+                  <td style="font-weight:700">\${e.monthStats.noScanDays} d</td>
                   <td>\${e.monthStats.totalHours} hrs</td>
                   <td class="row" style="gap:6px">
                     <button class="secondary" style="padding:4px 9px;font-size:11px" onclick="viewEmpTimesheet('\${e.id}','\${esc(e.name)}')">📅 View Activity</button>
@@ -982,17 +1231,17 @@ async function adminPortalView(){
         </div>
       </section>
 
-      <!-- Recent Punch Feed -->
+      <!-- Recent attendance activity -->
       <section class="card">
-        <h2>Live Verification Feed</h2>
+        <h2>Recent Attendance Activity</h2>
         <div style="overflow-x:auto">
           <table>
             <thead>
               <tr>
-                <th>Employee</th>
-                <th>Punch Time</th>
+                <th>Team Member</th>
+                <th>Time</th>
                 <th>Type</th>
-                <th>Distance to Geofence</th>
+                <th>Distance from Office</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -1001,11 +1250,24 @@ async function adminPortalView(){
                 <tr>
                   <td><strong>\${esc(p.name)}</strong> (\${esc(p.emp_code||'EMP')})</td>
                   <td>\${new Date(p.time).toLocaleString()}</td>
-                  <td><span class="badge \${p.kind==='in'?'present':'absent'}">\${p.kind==='in'?'🟢 CAME IN (Arrival)':'🔴 WENT OUTSIDE (Departure)'}</span></td>
+                  <td><span class="badge \${p.kind==='in'?'present':'absent'}">\${p.kind==='in'?(p.event_type==='break_end'?'🟢 RETURNED FROM BREAK':'🟢 ARRIVAL'):p.event_type==='day_end'?'✓ END OF DAY':'◷ BREAK'}</span></td>
                   <td>\${p.distance_meters!=null?p.distance_meters+' m':'—'}</td>
                   <td><span class="badge present">✓ \${esc(p.status)}</span></td>
                 </tr>
               \`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Daily Work Summaries</h2>
+        <p>Summaries submitted after staff end their day.</p>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Date</th><th>Staff</th><th>Staff ID</th><th>Work Completed</th><th>Submitted</th></tr></thead>
+            <tbody>
+              \${d.recentWorkReports.length?d.recentWorkReports.map(r=>\`<tr><td>\${esc(r.day)}</td><td><strong>\${esc(r.name)}</strong></td><td>\${esc(r.emp_code||'—')}</td><td style="white-space:normal;min-width:260px;max-width:520px"><div style="white-space:pre-wrap">\${esc(r.summary)}</div></td><td>\${new Date(r.submitted_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})}</td></tr>\`).join(''):'<tr><td colspan="5" class="muted">No work summaries submitted yet.</td></tr>'}
             </tbody>
           </table>
         </div>
@@ -1032,7 +1294,7 @@ async function adminPortalView(){
         });
         document.querySelector('#empCreds').innerHTML=\`
           <strong>Account Created Successfully! Give these credentials to \${esc(res.name)}:</strong><br>
-          Employee ID: <code>\${esc(res.emp_code)}</code><br>
+          Staff ID: <code>\${esc(res.emp_code)}</code><br>
           Username: <code>\${esc(res.username)}</code><br>
           Temporary Password: <code>\${esc(res.password)}</code>
         \`;
@@ -1047,10 +1309,11 @@ async function adminPortalView(){
     const copyBtn=document.querySelector('#copyRegLinkBtn');
     if(copyBtn){
       copyBtn.onclick=()=>{
-        const link=location.origin+'/register';
-        navigator.clipboard.writeText(link).catch(()=>{});
-        copyBtn.textContent='✓ Link Copied!';
-        setTimeout(()=>{copyBtn.textContent='Copy Invite Link';},2500);
+        const link=document.querySelector('#regLinkDisplay')?.textContent||location.origin+'/register';
+        navigator.clipboard.writeText(link).then(()=>{
+          copyBtn.textContent='✓ Link Copied';
+          setTimeout(()=>{copyBtn.textContent='Copy Invite Link';},2500);
+        }).catch(()=>msg('#settingsMsg','Unable to copy automatically. Select and copy the invitation link above.','error'));
       };
     }
 
@@ -1066,19 +1329,50 @@ async function adminPortalView(){
             officeLat:f.get('officeLat'),
             officeLng:f.get('officeLng'),
             radius:f.get('radius'),
-            regPasscode:f.get('regPasscode')
           })
         });
         msg('#settingsMsg','Office & security settings saved successfully.','success');
-        const newCode=f.get('regPasscode')||'DOIT2026';
-        s.regPasscode=newCode;
-        const codeDisplay=document.querySelector('#regPasscodeDisplay');
-        if(codeDisplay)codeDisplay.textContent=newCode;
         const linkDisplay=document.querySelector('#regLinkDisplay');
-        if(linkDisplay)linkDisplay.textContent=location.origin+'/register?code='+encodeURIComponent(newCode);
+        if(linkDisplay)linkDisplay.textContent=location.origin+'/register';
       }catch(err){
         msg('#settingsMsg',err.message,'error');
       }
+    };
+
+    document.querySelector('#holidayForm').onsubmit=async e=>{
+      e.preventDefault();
+      const f=new FormData(e.target);
+      const button=e.target.querySelector('button[type="submit"]');
+      button.disabled=true;
+      try{
+        await api('/api/admin/holidays',{method:'POST',headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},body:JSON.stringify({date:f.get('date'),name:f.get('name')})});
+        await adminPortalView();
+        msg('#holidayMsg','Public holiday saved. Attendance scans remain enabled for this date.','success');
+      }catch(err){
+        button.disabled=false;
+        msg('#holidayMsg',err.message,'error');
+      }
+    };
+
+    document.querySelector('#generateCardsForm').onsubmit=async e=>{
+      e.preventDefault();
+      const count=Number(new FormData(e.target).get('count'));
+      const button=e.target.querySelector('button[type="submit"]');
+      button.disabled=true;
+      try{
+        const result=await api('/api/admin/id-cards/generate',{method:'POST',headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},body:JSON.stringify({count})});
+        await adminPortalView();
+        msg('#idCardsMsg',result.serials.length+' blank card'+(result.serials.length===1?'':'s')+' generated. They are ready to print or link later.','success');
+      }catch(err){
+        button.disabled=false;
+        msg('#idCardsMsg',err.message,'error');
+      }
+    };
+
+    const printAllCardsBtn=document.querySelector('#printAllCardsBtn');
+    if(printAllCardsBtn)printAllCardsBtn.onclick=()=>{
+      const serials=d.idCards.filter(c=>!c.employee_id).map(c=>c.card_serial).join(',');
+      if(serials)window.open('/cards/print?serials='+encodeURIComponent(serials),'_blank','noopener');
     };
 
   }catch(err){
@@ -1087,6 +1381,45 @@ async function adminPortalView(){
     adminLoginView('Admin authentication failed: '+(err.message||'Please sign in again.'));
   }
 }
+
+window.removePublicHoliday=async date=>{
+  if(!confirm('Remove this public holiday?'))return;
+  try{
+    await api('/api/admin/holidays',{method:'DELETE',headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},body:JSON.stringify({date})});
+    adminPortalView();
+  }catch(err){alert(err.message);}
+};
+
+window.deleteIdCard=async(cardSerial,button)=>{
+  if(!confirm('Delete card '+cardSerial+'? Its QR and RFID association will stop working. The person and attendance records will be kept. This cannot be undone.'))return;
+  button.disabled=true;
+  try{
+    await api('/api/admin/id-cards',{method:'DELETE',headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},body:JSON.stringify({cardSerial})});
+    await adminPortalView();
+    msg('#idCardsMsg','Card '+cardSerial+' deleted.','success');
+    document.querySelector('#idCardInventory')?.scrollIntoView({block:'start'});
+  }catch(err){button.disabled=false;alert(err.message);}
+};
+
+window.saveCardProfile=async cardSerial=>{
+  const select=document.querySelector('#cardOwner-'+cardSerial);
+  if(!select)return;
+  try{
+    await api('/api/admin/id-cards/link',{method:'POST',headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},body:JSON.stringify({cardSerial,employeeId:select.value||null})});
+    await adminPortalView();
+    msg('#idCardsMsg','Card '+cardSerial+' profile link saved. Its QR now follows that profile.','success');
+  }catch(err){alert(err.message);}
+};
+
+window.assignCardRfid=async cardSerial=>{
+  const uid=prompt('Enter the RFID card UID read from your compatible reader. Leave blank to unlink it:');
+  if(uid===null)return;
+  try{
+    await api('/api/admin/id-cards/rfid',{method:'POST',headers:{authorization:'Basic '+btoa('admin:'+adminPassword)},body:JSON.stringify({cardSerial,rfidUid:uid})});
+    await adminPortalView();
+    msg('#idCardsMsg',uid.trim()?'RFID UID saved for '+cardSerial+'.':'RFID UID removed from '+cardSerial+'.','success');
+  }catch(err){alert(err.message);}
+};
 
 window.resetEmpPassword=async(empId,empName)=>{
   const modal=document.createElement('div');
@@ -1121,7 +1454,7 @@ window.resetEmpPassword=async(empId,empName)=>{
           <h2>Password Reset Complete</h2>
           <p>Share these credentials with the employee:</p>
           <div style="background:#f0f7f4;border:1px solid #c8e2d7;border-radius:10px;padding:14px;margin:16px 0;text-align:left">
-            <div><span class="muted">Employee:</span> <strong>\${esc(res.name)} (\${esc(res.emp_code)})</strong></div>
+            <div><span class="muted">Staff:</span> <strong>\${esc(res.name)} (\${esc(res.emp_code)})</strong></div>
             <div style="margin-top:6px"><span class="muted">Username:</span> <code>\${esc(res.username)}</code></div>
             <div style="margin-top:6px"><span class="muted">New Password:</span> <code style="font-size:15px;color:var(--primary);font-weight:700">\${esc(res.newPassword)}</code></div>
           </div>
@@ -1148,7 +1481,7 @@ window.viewEmpTimesheet=async(empId,empName)=>{
         <div class="between" style="margin-bottom:14px">
           <div>
             <h2 style="margin:0">\${esc(d.employee.name)} (\${esc(d.employee.emp_code||'EMP')})</h2>
-            <p style="margin:2px 0 0">\${esc(d.employee.role)} · \${esc(d.employee.department)} Department · Month: \${esc(d.timesheet.monthSummary.month)}</p>
+            <p style="margin:2px 0 0">Month: \${esc(d.timesheet.monthSummary.month)}</p>
           </div>
           <button class="secondary" onclick="document.querySelector('#empTimesheetModal')?.remove()">✕ Close</button>
         </div>
@@ -1158,16 +1491,16 @@ window.viewEmpTimesheet=async(empId,empName)=>{
             <div class="val" style="font-size:22px;color:var(--success-ink)">\${d.timesheet.monthSummary.presentDays} d</div>
           </div>
           <div class="stat-box" style="padding:12px">
-            <div class="title">Days Absent</div>
-            <div class="val" style="font-size:22px;color:var(--danger-ink)">\${d.timesheet.monthSummary.absentDays} d</div>
+            <div class="title">Days Without Scans</div>
+            <div class="val" style="font-size:22px">\${d.timesheet.monthSummary.noScanDays} d</div>
           </div>
           <div class="stat-box" style="padding:12px">
             <div class="title">Time In Office</div>
             <div class="val" style="font-size:22px">\${d.timesheet.monthSummary.totalHours} hrs</div>
           </div>
           <div class="stat-box" style="padding:12px">
-            <div class="title">Attendance Rate</div>
-            <div class="val" style="font-size:22px">\${d.timesheet.monthSummary.attendanceRate}%</div>
+            <div class="title">Public Holidays</div>
+            <div class="val" style="font-size:22px">\${d.timesheet.monthSummary.holidayDays} d</div>
           </div>
         </div>
         <div style="overflow-x:auto">
@@ -1177,19 +1510,19 @@ window.viewEmpTimesheet=async(empId,empName)=>{
                 <th>Date</th>
                 <th>Day</th>
                 <th>Status</th>
-                <th>Movement &amp; Punches (When Came / Went Out)</th>
+                <th>Attendance Activity</th>
                 <th>In Office</th>
-                <th>Outside</th>
+                <th>Time Away</th>
               </tr>
             </thead>
             <tbody>
               \${d.timesheet.calendar.map(day=>\`
                 <tr>
-                  <td><strong>\${esc(day.date)}</strong></td>
+                  <td><strong>\${esc(day.date)}</strong>\${day.isHoliday?'<br><small style="color:#8a4b08">'+esc(day.holidayName)+'</small>':''}</td>
                   <td>\${esc(day.dayOfWeek)}</td>
                   <td>
                     <span class="badge \${day.status.toLowerCase()}">
-                      \${day.status==='Present'?'✓ Present':day.status==='Absent'?'✕ Absent':day.status==='Weekend'?'Weekend':'—'}
+                      \${day.status==='Present'?'✓ Present':day.status==='Holiday'?'Holiday':day.status==='No Activity'?'No Activity':day.status==='Absent'?'✕ Absent':day.status==='Weekend'?'Weekend':'—'}
                     </span>
                   </td>
                   <td>
@@ -1201,7 +1534,7 @@ window.viewEmpTimesheet=async(empId,empName)=>{
                           </span>
                         \`).join('<span class="flow-arrow">➔</span>')}
                       </div>
-                    \` : (day.status==='Absent'?'<span style="color:var(--danger-ink);font-size:12px">✕ No Punches</span>':(day.status==='Weekend'?'<span style="color:var(--muted);font-size:12px">Weekend</span>':'—'))}
+                    \` : (day.status==='Holiday'?'<span style="color:#8a4b08;font-size:12px">Holiday · no scan</span>':day.status==='Absent'?'<span style="color:var(--danger-ink);font-size:12px">✕ No Entries</span>':(day.status==='Weekend'?'<span style="color:var(--muted);font-size:12px">Weekend</span>':'—'))}
                   </td>
                   <td style="font-weight:600">\${day.duration||'—'}</td>
                   <td style="color:var(--muted)">\${day.outsideDuration||'0m'}</td>
@@ -1227,18 +1560,107 @@ window.viewEmpTimesheet=async(empId,empName)=>{
   }
 };
 
+function idCardFaces(cardSerial){
+  const profileUrl='https://doit-erp.pages.dev/profile/'+encodeURIComponent(cardSerial);
+  const qrUrl='https://api.qrserver.com/v1/create-qr-code/?size=800x800&ecc=H&margin=0&qzone=4&color=071d2c&bgcolor=e8f2f6&data='+encodeURIComponent(profileUrl);
+  return \`<article class="id-card-sheet final-card final-front" aria-label="Staff ID front"><span class="final-front-serial">\${esc(cardSerial)}</span></article><article class="id-card-sheet final-card final-back" aria-label="Staff ID back"><div class="final-qr"><img src="\${qrUrl}" alt="Scan to view profile"><svg class="final-profile-icon" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#e8f2f6"/><circle cx="20" cy="12" r="7" fill="#102d43"/><path d="M7 36v-6c0-14 26-14 26 0v6z" fill="#102d43"/></svg></div><div class="final-back-serial">\${esc(cardSerial)}</div><div class="final-scan-label">Scan to view profile</div></article>\`;
+}
+
+async function showIdCard(serial,printCard){
+  if(!printCard){
+    document.body.classList.add('profile-only');
+    document.title='Staff Profile · DoIt Innovations';
+    document.querySelector('.brand-copy strong').textContent='Staff Profile';
+    headerAuth.innerHTML='';
+  }else{
+    headerAuth.innerHTML='<a href="/manager" class="btn secondary">Management</a>';
+  }
+  app.innerHTML='<section class="card narrow">Loading ID card…</section>';
+  try{
+    const result=await api('/api/public/id-cards/'+encodeURIComponent(serial));
+    const cardSerial=result.cardSerial;
+    if(printCard){
+      document.body.classList.add('id-card-print-mode');
+      app.innerHTML=\`
+        <div class="id-card-preview">
+          \${idCardFaces(cardSerial)}
+        </div>
+        <div class="id-card-actions"><button onclick="window.print()">Print Front &amp; Back</button><a class="btn secondary" href="/manager">Back to Management</a></div>
+      \`;
+    }else if(result.status==='unassigned'){
+      document.body.classList.remove('id-card-print-mode');
+      app.innerHTML=\`
+        <section class="id-profile" style="text-align:center">
+          <img class="id-profile-logo" src="/doit-logo.png" alt="DoIt Innovations">
+          <p class="poster-eyebrow" style="margin-top:18px">DOIT INNOVATIONS</p>
+          <h1>Card not assigned</h1>
+          <p>This identity card is awaiting assignment. Please contact the issuing office.</p>
+          <div class="id-profile-field" style="margin-top:18px"><small>Card serial</small><strong>\${esc(cardSerial)}</strong></div>
+        </section>
+      \`;
+    }else{
+      document.body.classList.remove('id-card-print-mode');
+      const profile=result.profile;
+      app.innerHTML=\`
+        <section class="id-profile">
+          <img class="id-profile-logo" src="/doit-logo.png" alt="DoIt Innovations">
+          <p class="poster-eyebrow" style="margin-top:18px">Staff Profile</p>
+          <h1>\${esc(profile.name)}</h1>
+          <p>\${esc(profile.name)}</p>
+          <div class="id-profile-grid">
+            <div class="id-profile-field"><small>Staff ID</small><strong>\${esc(profile.staffId||'—')}</strong></div>
+            <div class="id-profile-field"><small>Card Serial</small><strong>\${esc(cardSerial)}</strong></div>
+          </div>
+        </section>
+      \`;
+    }
+  }catch(err){
+    app.innerHTML='<section class="card narrow"><h1>ID card unavailable</h1><p>'+esc(err.message)+'</p></section>';
+  }
+}
+
+async function showIdCardBatch(serials){
+  headerAuth.innerHTML='<a href="/manager" class="btn secondary" style="padding:8px 12px;font-size:12px">Back to Management</a>';
+  document.body.classList.add('id-card-print-mode');
+  app.innerHTML='<section class="card narrow">Preparing cards…</section>';
+  try{
+    const unique=[...new Set(serials.filter(s=>/^DIC-[A-F0-9]{10}$/i.test(s)).map(s=>s.toUpperCase()))].slice(0,100);
+    if(!unique.length)throw new Error('No valid card serials were selected.');
+    const records=await Promise.all(unique.map(serial=>api('/api/public/id-cards/'+encodeURIComponent(serial))));
+    app.innerHTML=\`<div class="id-card-preview">\${records.map(card=>idCardFaces(card.cardSerial)).join('')}</div><div class="id-card-actions"><button onclick="window.print()">Print \${records.length} Cards · Front &amp; Back</button><a class="btn secondary" href="/manager">Back to Management</a></div>\`;
+  }catch(err){
+    document.body.classList.remove('id-card-print-mode');
+    app.innerHTML='<section class="card narrow"><h1>Card print unavailable</h1><p>'+esc(err.message)+'</p></section>';
+  }
+}
+
 // ---------------- ROUTER ----------------
-if(location.pathname==='/poster'){
+if(location.pathname==='/cards/print'){
+  showIdCardBatch((new URLSearchParams(location.search).get('serials')||'').split(','));
+}else if(location.pathname.startsWith('/card/')){
+  showIdCard(decodeURIComponent(location.pathname.split('/').at(-1)||''),true);
+}else if(location.pathname.startsWith('/profile/')){
+  showIdCard(decodeURIComponent(location.pathname.split('/').at(-1)||''),false);
+}else if(location.pathname==='/poster'){
   api('/api/poster').then(d=>{
+    const qrImageUrl='https://api.qrserver.com/v1/create-qr-code/?size=900x900&color=002046&bgcolor=ffffff&qzone=2&data='+encodeURIComponent(d.code);
     app.innerHTML=\`
-      <section class="card narrow" style="text-align:center;padding:40px 24px">
-        <span class="badge present">DOIT INNOVATIONS ERP</span>
-        <h1 style="margin-top:14px;font-size:28px">\${esc(d.officeName)}</h1>
-        <p style="margin-bottom:20px">Point your smartphone camera to check in or check out.</p>
-        <img alt="Office attendance QR code" width="280" height="280" src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=\${encodeURIComponent(d.code)}" style="border:3px solid var(--primary);border-radius:18px;padding:12px;background:#fff">
-        <p class="muted" style="margin-top:16px">Print and mount this poster at the office entrance.</p>
-        <button onclick="window.print()" style="margin-top:16px">Print Office Poster</button>
-      </section>
+      <article class="poster-sheet">
+        <div class="poster-top"><img class="poster-logo" src="/doit-logo.png" alt="DoIt official logo"><div class="poster-label">OFFICIAL<br>OFFICE ATTENDANCE</div></div>
+        <div class="poster-content">
+          <p class="poster-eyebrow">\${esc(d.officeName)}</p>
+          <h1>Scan when you arrive.<br>Scan when you leave.</h1>
+          <p class="poster-lead">Use your personal DoIt Attendance account and scan this code from the office.</p>
+          <div class="poster-qr-frame"><img class="poster-qr" alt="Official office attendance QR code" src="\${qrImageUrl}"></div>
+          <div class="poster-instructions">
+            <div class="poster-step"><strong>01 · Sign in</strong>Open DoIt Attendance on your phone.</div>
+            <div class="poster-step"><strong>02 · Scan on arrival</strong>Use Open Scanner when you reach the office.</div>
+            <div class="poster-step"><strong>03 · Scan at day end</strong>Record your final departure before leaving.</div>
+          </div>
+          <p class="poster-foot">For attendance, scan while at the office with location access enabled. Breaks can be recorded separately.</p>
+        </div>
+      </article>
+      <div class="poster-actions"><button onclick="window.print()">Print A4 Poster</button><a class="btn secondary" href="\${qrImageUrl}" target="_blank" rel="noopener">Open QR Image</a><a class="btn secondary" href="/">Back to Sign In</a></div>
     \`;
   }).catch(e=>{app.innerHTML='<p>Error: '+esc(e.message)+'</p>'});
 }else if(location.pathname==='/register'){
@@ -1355,7 +1777,8 @@ function processDayPunches(punches, dateStr, isToday){
     processed.push({
       id:p.id,
       kind:p.kind,
-      label:p.kind==='in'?'Came In':'Went Outside',
+      eventType:p.event_type||'regular',
+      label:p.kind==='in'?'Checked In':p.event_type==='day_end'?'Day End':'Break Started',
       time:p.time,
       timeFormatted:formatPunchTime(p.time),
       intervalText
@@ -1398,6 +1821,14 @@ function processDayPunches(punches, dateStr, isToday){
 // Compute calendar & statistics for a given employee & month (e.g. '2026-11')
 async function buildMonthlyTimesheet(env, employeeId, monthStr){
   const today=todayStr();
+  const employee=await env.DB.prepare('SELECT created_at FROM employees WHERE id=?').bind(employeeId).first();
+  const resetSetting=await env.DB.prepare("SELECT value FROM settings WHERE key='attendanceStartDate'").first();
+  const createdDate=employee?.created_at?new Date(employee.created_at+19800000).toISOString().slice(0,10):'';
+  const accountStartDate=[createdDate,resetSetting?.value||''].sort().at(-1);
+  const holidaySetting=await env.DB.prepare("SELECT value FROM settings WHERE key='publicHolidays'").first();
+  let holidayItems=[];
+  try{holidayItems=JSON.parse(holidaySetting?.value||'[]');}catch{}
+  const namedHolidays=Object.fromEntries((Array.isArray(holidayItems)?holidayItems:[]).filter(h=>/^\d{4}-\d{2}-\d{2}$/.test(h?.date||'')).map(h=>[h.date,String(h.name||'Public holiday')]));
   const [yearStr, monthNumStr]=monthStr.split('-');
   const year=parseInt(yearStr,10);
   const monthIndex=parseInt(monthNumStr,10)-1; // 0-indexed
@@ -1406,7 +1837,7 @@ async function buildMonthlyTimesheet(env, employeeId, monthStr){
   // Fetch all punches for this employee in this month
   const monthPattern=`${monthStr}-%`;
   const events=(await env.DB.prepare(
-    'SELECT id,kind,time,day FROM attendance_events WHERE employee_id=? AND day LIKE ? ORDER BY time ASC'
+    "SELECT e.id,e.kind,COALESCE(t.event_type,'regular') AS event_type,e.time,e.day FROM attendance_events e LEFT JOIN attendance_event_types t ON t.event_id=e.id WHERE e.employee_id=? AND e.day LIKE ? ORDER BY e.time ASC"
   ).bind(employeeId, monthPattern).all()).results;
 
   // Group events by day
@@ -1418,16 +1849,21 @@ async function buildMonthlyTimesheet(env, employeeId, monthStr){
 
   const calendar=[];
   let presentDays=0;
-  let absentDays=0;
+  let noScanDays=0;
   let totalMinutesWorked=0;
   let workingDaysSoFar=0;
+  let holidayDays=0;
 
   for(let d=1; d<=daysInMonth; d++){
     const dStr=String(d).padStart(2,'0');
     const dateStr=`${monthStr}-${dStr}`;
+    // A person's attendance timeline begins with their account, never before it.
+    if(accountStartDate && dateStr<accountStartDate)continue;
     const dt=new Date(year, monthIndex, d);
     const dayOfWeekStr=new Intl.DateTimeFormat('en-US',{weekday:'short'}).format(dt);
-    const isWeekend=(dt.getDay()===0 || dt.getDay()===6); // Sun or Sat
+    const isHoliday=Object.hasOwn(namedHolidays,dateStr);
+    const holidayName=namedHolidays[dateStr]||'';
+    if(isHoliday)holidayDays++;
     const isPastOrToday=(dateStr<=today);
 
     const punches=dayMap[dateStr]||[];
@@ -1440,15 +1876,15 @@ async function buildMonthlyTimesheet(env, employeeId, monthStr){
       presentDays++;
       totalMinutesWorked+=dayStats.onSiteMins;
     }else{
-      if(isWeekend){
-        status='Weekend';
+      if(isHoliday){
+        status='Holiday';
       }else if(isPastOrToday){
-        status='Absent';
-        absentDays++;
+        status='No Activity';
+        noScanDays++;
       }
     }
 
-    if(!isWeekend && isPastOrToday){
+    if(!isHoliday && isPastOrToday){
       workingDaysSoFar++;
     }
 
@@ -1456,7 +1892,9 @@ async function buildMonthlyTimesheet(env, employeeId, monthStr){
       date:dateStr,
       dayNumber:d,
       dayOfWeek:dayOfWeekStr,
-      isWeekend,
+      isWeekend:isHoliday,
+      isHoliday,
+      holidayName,
       status,
       firstIn:dayStats.firstIn,
       lastOut:dayStats.lastOut,
@@ -1468,17 +1906,15 @@ async function buildMonthlyTimesheet(env, employeeId, monthStr){
   }
 
   const totalHours=(totalMinutesWorked/60).toFixed(1);
-  const attendanceRate=workingDaysSoFar>0?Math.round((presentDays/workingDaysSoFar)*100):0;
-
   return {
     calendar,
     monthSummary:{
       month:monthStr,
       presentDays,
-      absentDays,
+      noScanDays,
+      holidayDays,
       totalHours,
-      workingDaysSoFar,
-      attendanceRate
+      workingDaysSoFar
     }
   };
 }
@@ -1497,7 +1933,7 @@ async function handle(request,env){
     if((p==='/api/health'||p==='/health')&&method==='GET'){
       return json({
         status:'ok',
-        app:'DoIt ERP Attendance',
+        app:'DoIt Attendance',
         mode:'backend-connected',
         adminAuthRequired:true,
         officeId:env.OFFICE_ID||'DOIT-HQ',
@@ -1523,20 +1959,11 @@ async function handle(request,env){
     if(p==='/api/register'&&method==='POST'){
       const b=await request.json();
 
-      // Validate Company Registration Passcode (auto-given)
-      const settingsList=(await env.DB.prepare('SELECT key,value FROM settings').all()).results;
-      const settingsMap=Object.fromEntries(settingsList.map(x=>[x.key,x.value]));
-      const expectedCode=settingsMap.regPasscode||env.REGISTRATION_PASSCODE||'DOIT2026';
-      const providedCode=String(b.regCode||'DOIT2026').trim();
-      if(providedCode!==expectedCode && expectedCode!=='DOIT2026'){
-        return json({error:'Invalid Company Registration Passcode. Please use the official onboarding link provided by your manager.'},403);
-      }
-
       const name=String(b.name||'').trim();
       if(!name)return json({error:'Full name is required.'},400);
 
       const password=String(b.password||'').trim();
-      if(password.length<6)return json({error:'Password must be at least 6 characters.'},400);
+      if(password.length<10)return json({error:'Password must be at least 10 characters.'},400);
 
       const dept=String(b.department||'Operations').trim();
       const role=String(b.role||'Associate').trim();
@@ -1621,18 +2048,21 @@ async function handle(request,env){
       const month=url.searchParams.get('month')||today.slice(0,7);
 
       // Today punches
-      const todayPunches=(await env.DB.prepare(
-        'SELECT id,kind,time,status FROM attendance_events WHERE employee_id=? AND day=? ORDER BY time ASC'
+  const todayPunches=(await env.DB.prepare(
+        "SELECT e.id,e.kind,COALESCE(t.event_type,'regular') AS event_type,e.time,e.status FROM attendance_events e LEFT JOIN attendance_event_types t ON t.event_id=e.id WHERE e.employee_id=? AND e.day=? ORDER BY e.time ASC"
       ).bind(emp.id,today).all()).results;
 
       const todayStats=processDayPunches(todayPunches, today, true);
       const timesheet=await buildMonthlyTimesheet(env, emp.id, month);
+      const todayReport=await env.DB.prepare('SELECT summary,submitted_at FROM daily_work_reports WHERE employee_id=? AND day=?').bind(emp.id,today).first();
 
       return json({
         employee:emp,
         todaySummary:{
           date:today,
           currentState:todayStats.currentState,
+          dayEnded:todayPunches.at(-1)?.event_type==='day_end',
+          workReport:todayReport||null,
           firstIn:todayStats.firstIn,
           lastOut:todayStats.lastOut,
           hoursWorked:todayStats.onSiteDuration!=='—'?todayStats.onSiteDuration:'0h 0m',
@@ -1655,7 +2085,7 @@ async function handle(request,env){
       });
     }
 
-    // Scan Attendance Punch
+    // Scan Record Attendance
     if(p==='/api/scan'&&method==='POST'){
       const emp=await getAuthEmployee(request,env);
       const b=await request.json();
@@ -1673,17 +2103,18 @@ async function handle(request,env){
 
       const settings=Object.fromEntries((await env.DB.prepare('SELECT key,value FROM settings').all()).results.map(x=>[x.key,x.value]));
       if(!settings.officeLat||!settings.officeLng){
-        return json({error:'Office GPS coordinates must be configured by Admin in the portal first.'},503);
+        return json({error:'Office location must be configured in Management settings first.'},503);
       }
 
       const loc=b.location;
-      if(typeof loc?.latitude!=='number'||typeof loc?.longitude!=='number'){
+      if(!Number.isFinite(loc?.latitude)||!Number.isFinite(loc?.longitude)||Math.abs(loc.latitude)>90||Math.abs(loc.longitude)>180){
         return json({error:'Location permission is required to verify physical office presence.'},400);
       }
 
       const dist=distance(+settings.officeLat,+settings.officeLng,loc.latitude,loc.longitude);
       const radius=Number(settings.radius)||150;
-      if(dist>radius+(Number(loc.accuracy)||20)){
+      if(!Number.isFinite(loc.accuracy)||loc.accuracy<=0||loc.accuracy>100)return json({error:'Location is not accurate enough. Enable precise location and retry. No attendance was recorded.'},400);
+      if(dist>radius){
         return json({error:`Location check failed: You are approximately ${dist}m away from the office (allowed: ${radius}m).`},400);
       }
 
@@ -1698,35 +2129,133 @@ async function handle(request,env){
         return json({error:'Please wait at least 45 seconds before punching again.'},429);
       }
 
-      const last=await env.DB.prepare(
-        'SELECT kind FROM attendance_events WHERE employee_id=? AND day=? ORDER BY time DESC LIMIT 1'
+      const action=String(b.action||'');
+      const lastEvent=await env.DB.prepare(
+        "SELECT e.kind,COALESCE(t.event_type,'regular') AS event_type FROM attendance_events e LEFT JOIN attendance_event_types t ON t.event_id=e.id WHERE e.employee_id=? AND e.day=? ORDER BY e.time DESC LIMIT 1"
       ).bind(emp.id,today).first();
+      let kind,eventType;
+      if(!['arrival','break','end'].includes(action))return json({error:'Invalid attendance action.'},400);
+      if(!lastEvent){
+        if(action!=='arrival')return json({error:'Please check in first. Refresh your attendance page.'},409);
+        kind='in';eventType='arrival';
+      }else if(lastEvent.kind==='in'){
+        if(action!=='break'&&action!=='end')return json({error:'Choose whether you are taking a break or ending your day.'},400);
+        kind='out';eventType=action==='end'?'day_end':'break_start';
+      }else{
+        if(action!=='arrival')return json({error:'You are already checked out. Refresh your attendance page.'},409);
+        if(lastEvent.event_type==='day_end')return json({error:'Your day is already complete.'},409);
+        kind='in';eventType='break_end';
+      }
 
-      const kind=last?.kind==='in'?'out':'in';
-
-      await env.DB.prepare(
-        'INSERT INTO attendance_events(id,employee_id,day,kind,time,latitude,longitude,accuracy,distance_meters,status) VALUES(?,?,?,?,?,?,?,?,?,?)'
-      ).bind(crypto.randomUUID(),emp.id,today,kind,now,loc.latitude,loc.longitude,loc.accuracy||null,dist,'verified').run();
+      const eventId=crypto.randomUUID();
+      await env.DB.batch([
+        env.DB.prepare('INSERT INTO attendance_events(id,employee_id,day,kind,time,latitude,longitude,accuracy,distance_meters,status) VALUES(?,?,?,?,?,?,?,?,?,?)').bind(eventId,emp.id,today,kind,now,loc.latitude,loc.longitude,loc.accuracy||null,dist,'verified'),
+        env.DB.prepare('INSERT INTO attendance_event_types(event_id,event_type) VALUES(?,?)').bind(eventId,eventType)
+      ]);
 
       return json({
         success:true,
         kind,
-        message:kind==='in'?'Arrival recorded! Welcome to DoIt Innovations.':'Departure recorded! Have a great evening.'
+        eventType,
+        needsWorkReport:eventType==='day_end',
+        message:eventType==='day_end'?'Departure recorded. Please add your work summary for today.':kind==='in'?'Arrival recorded. Welcome to DoIt Innovations.':'Break started. Scan again when you return.'
       });
+    }
+
+    if(p==='/api/work-report'&&method==='POST'){
+      const emp=await getAuthEmployee(request,env);
+      const b=await request.json();
+      const summary=String(b.summary||'').trim();
+      if(summary.length<5)return json({error:'Please add at least a short description of the work completed.'},400);
+      if(summary.length>4000)return json({error:'Please keep the work summary under 4,000 characters.'},400);
+      const today=todayStr();
+      const dayEnd=await env.DB.prepare("SELECT e.id FROM attendance_events e JOIN attendance_event_types t ON t.event_id=e.id WHERE e.employee_id=? AND e.day=? AND t.event_type='day_end' ORDER BY e.time DESC LIMIT 1").bind(emp.id,today).first();
+      if(!dayEnd)return json({error:'A work summary is available after you scan to end your day.'},409);
+      await env.DB.prepare('INSERT INTO daily_work_reports(id,employee_id,day,summary,submitted_at) VALUES(?,?,?,?,?) ON CONFLICT(employee_id,day) DO UPDATE SET summary=excluded.summary,submitted_at=excluded.submitted_at').bind(crypto.randomUUID(),emp.id,today,summary,Date.now()).run();
+      return json({success:true,message:'Work summary saved.'});
+    }
+
+    const publicCardMatch=p.match(/^\/api\/public\/id-cards\/(DIC-[A-F0-9]{10})$/i);
+    if(publicCardMatch&&method==='GET'){
+      const serial=publicCardMatch[1].toUpperCase();
+      const card=await env.DB.prepare('SELECT c.card_serial,c.employee_id,e.emp_code,e.name,e.role,e.department,e.active FROM id_cards c LEFT JOIN employees e ON e.id=c.employee_id WHERE c.card_serial=?').bind(serial).first();
+      if(!card)return json({error:'This ID card was not found.'},404);
+      if(!card.employee_id||!card.active)return json({status:'unassigned',cardSerial:card.card_serial});
+      return json({status:'linked',cardSerial:card.card_serial,profile:{staffId:card.emp_code,name:card.name,role:card.role,department:card.department}});
     }
 
     // ---------------- ADMIN API ROUTES ----------------
     if(p.startsWith('/api/admin/'))await requireAdmin(request,env);
 
+    if(p==='/api/admin/id-cards'&&method==='DELETE'){
+      const body=await request.json();
+      const serial=String(body.cardSerial||'').trim().toUpperCase();
+      if(!/^DIC-[A-F0-9]{10}$/.test(serial))return json({error:'Invalid card serial.'},400);
+      const result=await env.DB.prepare('DELETE FROM id_cards WHERE card_serial=?').bind(serial).run();
+      if(!result.meta.changes)return json({error:'Card was not found.'},404);
+      return json({ok:true,cardSerial:serial});
+    }
+
+    if(p==='/api/admin/id-cards/generate'&&method==='POST'){
+      const body=await request.json();
+      const count=Number(body.count);
+      if(!Number.isInteger(count)||count<1||count>100)return json({error:'Choose between 1 and 100 cards per batch.'},400);
+      const serials=[];
+      for(let i=0;i<count;i++){
+        let serial='';
+        for(let attempt=0;attempt<8;attempt++){
+          const candidate='DIC-'+hex(crypto.getRandomValues(new Uint8Array(5))).toUpperCase();
+          if(!serials.includes(candidate)&&!await env.DB.prepare('SELECT card_serial FROM id_cards WHERE card_serial=?').bind(candidate).first()){
+            serial=candidate;
+            break;
+          }
+        }
+        if(!serial)return json({error:'Could not generate a unique card serial. Please try again.'},503);
+        serials.push(serial);
+      }
+      await env.DB.batch(serials.map(serial=>env.DB.prepare('INSERT INTO id_cards(card_serial,created_at) VALUES(?,?)').bind(serial,Date.now())));
+      return json({ok:true,serials},201);
+    }
+
+    if(p==='/api/admin/id-cards/link'&&method==='POST'){
+      const body=await request.json();
+      const serial=String(body.cardSerial||'').toUpperCase();
+      const employeeId=String(body.employeeId||'');
+      if(!/^DIC-[A-F0-9]{10}$/.test(serial))return json({error:'Invalid card serial.'},400);
+      const card=await env.DB.prepare('SELECT card_serial FROM id_cards WHERE card_serial=?').bind(serial).first();
+      if(!card)return json({error:'Card was not found.'},404);
+      if(employeeId&&!await env.DB.prepare('SELECT id FROM employees WHERE id=? AND active=1').bind(employeeId).first())return json({error:'Active staff not found.'},404);
+      await env.DB.prepare('UPDATE id_cards SET employee_id=? WHERE card_serial=?').bind(employeeId||null,serial).run();
+      return json({ok:true,linked:!!employeeId,cardSerial:serial});
+    }
+
+    if(p==='/api/admin/id-cards/rfid'&&method==='POST'){
+      const body=await request.json();
+      const serial=String(body.cardSerial||'').toUpperCase();
+      if(!/^DIC-[A-F0-9]{10}$/.test(serial))return json({error:'Invalid card serial.'},400);
+      const card=await env.DB.prepare('SELECT card_serial FROM id_cards WHERE card_serial=?').bind(serial).first();
+      if(!card)return json({error:'Card was not found.'},404);
+      const uid=String(body.rfidUid||'').trim().replace(/\s+/g,'').toUpperCase();
+      if(uid&&!/^[A-Z0-9:-]{4,40}$/.test(uid))return json({error:'Enter a valid RFID UID using letters, numbers, colons, or hyphens.'},400);
+      if(uid){
+        const duplicate=await env.DB.prepare('SELECT card_serial FROM id_cards WHERE rfid_uid=? AND card_serial<>?').bind(uid,serial).first();
+        if(duplicate)return json({error:'This RFID UID is already assigned to another card.'},409);
+      }
+      await env.DB.prepare('UPDATE id_cards SET rfid_uid=? WHERE card_serial=?').bind(uid||null,serial).run();
+      return json({ok:true,linked:!!uid,cardSerial:serial});
+    }
+
     if(p==='/api/admin/settings'&&method==='GET'){
       const s=await env.DB.prepare('SELECT key,value FROM settings').all();
       const o=Object.fromEntries(s.results.map(x=>[x.key,x.value]));
+      let publicHolidays=[];
+      try{publicHolidays=JSON.parse(o.publicHolidays||'[]');}catch{}
       return json({
         officeName:o.officeName||'DoIt Innovations Head Office',
         officeLat:o.officeLat||'',
         officeLng:o.officeLng||'',
         radius:o.radius||'150',
-        regPasscode:o.regPasscode||env.REGISTRATION_PASSCODE||'DOIT2026'
+        publicHolidays:Array.isArray(publicHolidays)?publicHolidays:[],
       });
     }
 
@@ -1737,7 +2266,6 @@ async function handle(request,env){
         officeLat:b.officeLat,
         officeLng:b.officeLng,
         radius:b.radius,
-        regPasscode:b.regPasscode||'DOIT2026'
       };
       for(const [k,v] of Object.entries(fields)){
         if(v!==undefined&&v!==null){
@@ -1745,6 +2273,26 @@ async function handle(request,env){
         }
       }
       return json({ok:true});
+    }
+
+    if(p==='/api/admin/holidays'&&(method==='POST'||method==='DELETE')){
+      const body=await request.json();
+      const date=String(body.date||'');
+      const parsedDate=Date.parse(date+'T00:00:00Z');
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(parsedDate)||new Date(parsedDate).toISOString().slice(0,10)!==date)return json({error:'Enter a valid holiday date.'},400);
+      let publicHolidays=[];
+      const stored=await env.DB.prepare("SELECT value FROM settings WHERE key='publicHolidays'").first();
+      try{publicHolidays=JSON.parse(stored?.value||'[]');}catch{}
+      if(!Array.isArray(publicHolidays))publicHolidays=[];
+      if(method==='POST'){
+        const name=String(body.name||'').trim().slice(0,100);
+        if(!name)return json({error:'Enter a holiday name.'},400);
+        publicHolidays=publicHolidays.filter(h=>h?.date!==date);
+        publicHolidays.push({date,name});
+        publicHolidays.sort((a,b)=>a.date.localeCompare(b.date));
+      }else publicHolidays=publicHolidays.filter(h=>h?.date!==date);
+      await env.DB.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').bind('publicHolidays',JSON.stringify(publicHolidays)).run();
+      return json({ok:true,publicHolidays});
     }
 
     // Add Employee
@@ -1810,50 +2358,57 @@ async function handle(request,env){
       const month=url.searchParams.get('month')||today.slice(0,7);
 
       const emps=(await env.DB.prepare('SELECT id,emp_code,username,name,role,department,active FROM employees ORDER BY created_at ASC').all()).results;
+      const idCards=(await env.DB.prepare('SELECT c.card_serial,c.employee_id,c.rfid_uid,c.created_at,e.name,e.emp_code FROM id_cards c LEFT JOIN employees e ON e.id=c.employee_id ORDER BY c.created_at DESC').all()).results;
 
-      const todayEvents=(await env.DB.prepare('SELECT employee_id,kind FROM attendance_events WHERE day=? ORDER BY time ASC').bind(today).all()).results;
+      const todayEvents=(await env.DB.prepare("SELECT e.employee_id,e.kind,COALESCE(t.event_type,'regular') AS event_type FROM attendance_events e LEFT JOIN attendance_event_types t ON t.event_id=e.id WHERE e.day=? ORDER BY e.time ASC").bind(today).all()).results;
       const todayMap={};
-      for(const e of todayEvents)todayMap[e.employee_id]=e.kind;
+      for(const e of todayEvents)todayMap[e.employee_id]=e;
 
       // Get monthly stats for each employee
       const employeeReports=await Promise.all(emps.map(async e=>{
         const ts=await buildMonthlyTimesheet(env, e.id, month);
         return {
           ...e,
-          todayState:todayMap[e.id]||'none',
+          todayState:todayMap[e.id]?.kind||'none',
+          todayEventType:todayMap[e.id]?.event_type||'regular',
           monthStats:ts.monthSummary
         };
       }));
 
       const recentPunches=(await env.DB.prepare(
-        'SELECT e.id,e.employee_id,e.kind,e.time,e.distance_meters,e.status,m.name,m.emp_code FROM attendance_events e JOIN employees m ON m.id=e.employee_id ORDER BY e.time DESC LIMIT 25'
+        "SELECT e.id,e.employee_id,e.kind,COALESCE(t.event_type,'regular') AS event_type,e.time,e.distance_meters,e.status,m.name,m.emp_code FROM attendance_events e JOIN employees m ON m.id=e.employee_id LEFT JOIN attendance_event_types t ON t.event_id=e.id ORDER BY e.time DESC LIMIT 25"
+      ).all()).results;
+      const recentWorkReports=(await env.DB.prepare(
+        'SELECT r.id,r.day,r.summary,r.submitted_at,m.name,m.emp_code FROM daily_work_reports r JOIN employees m ON m.id=r.employee_id ORDER BY r.day DESC,r.submitted_at DESC LIMIT 50'
       ).all()).results;
 
-      const checkedInToday=Object.values(todayMap).filter(x=>x==='in').length;
-      const absentToday=emps.length - checkedInToday;
+      const checkedInToday=Object.values(todayMap).filter(x=>x.kind==='in').length;
+      const absentToday=emps.length - Object.keys(todayMap).length;
 
       return json({
         employees:employeeReports,
+        idCards,
         totalEmployees:emps.length,
         checkedInToday,
         absentToday,
         todayPunchesCount:todayEvents.length,
-        recentPunches
+        recentPunches,
+        recentWorkReports
       });
     }
 
     // PWA Manifest & Assets
     if(p==='/manifest.json'||p==='/manifest.webmanifest'){
       return new Response(JSON.stringify({
-        name:'DoIt ERP Attendance',
-        short_name:'DoIt ERP',
-        description:'Enterprise QR Attendance & Timesheet System for DoIt Innovations',
+        name:'DoIt Attendance',
+        short_name:'DoIt',
+        description:'Attendance and timesheet management for DoIt Innovations',
         start_url:'/',
         scope:'/',
         display:'standalone',
         orientation:'portrait-primary',
         background_color:'#f4f6f3',
-        theme_color:'#0d3b2e',
+        theme_color:'#002046',
         icons:[
           {src:'/icon.svg',sizes:'any',type:'image/svg+xml',purpose:'any maskable'},
           {src:'/icon-192.png',sizes:'192x192',type:'image/png',purpose:'any maskable'},
@@ -1863,12 +2418,12 @@ async function handle(request,env){
     }
 
     if(p==='/sw.js'){
-      const sw = "const CACHE_NAME='doit-erp-v1';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});";
+      const sw = "const CACHE_NAME='doit-attendance-v2';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});";
       return new Response(sw,{headers:{'content-type':'application/javascript; charset=utf-8','cache-control':'no-cache'}});
     }
 
     if(p==='/icon.svg'){
-      const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d3b2e"/><stop offset="100%" stop-color="#06231b"/></linearGradient><linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><rect width="512" height="512" rx="128" fill="url(#g)"/><rect x="8" y="8" width="496" height="496" rx="120" fill="none" stroke="#10b981" stroke-width="8" stroke-opacity="0.3"/><polygon points="256,70 410,224 256,378 102,224" fill="url(#accent)" opacity="0.15"/><polygon points="256,90 390,224 256,358 122,224" fill="none" stroke="#10b981" stroke-width="12" stroke-linejoin="round"/><circle cx="256" cy="224" r="70" fill="#0d3b2e" stroke="#10b981" stroke-width="8"/><polyline points="230,224 250,244 285,204" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><text x="256" y="440" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">DOIT ERP</text><text x="256" y="475" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#10b981" text-anchor="middle" letter-spacing="3">ATTENDANCE</text></svg>';
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#002046"/><stop offset="100%" stop-color="#00152e"/></linearGradient><linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0eAAF5"/><stop offset="100%" stop-color="#087fb8"/></linearGradient></defs><rect width="512" height="512" rx="128" fill="url(#g)"/><rect x="8" y="8" width="496" height="496" rx="120" fill="none" stroke="#0eAAF5" stroke-width="8" stroke-opacity="0.3"/><polygon points="256,70 410,224 256,378 102,224" fill="url(#accent)" opacity="0.15"/><polygon points="256,90 390,224 256,358 122,224" fill="none" stroke="#0eAAF5" stroke-width="12" stroke-linejoin="round"/><circle cx="256" cy="224" r="70" fill="#002046" stroke="#0eAAF5" stroke-width="8"/><polyline points="230,224 250,244 285,204" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><text x="256" y="440" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">DoIt Attendance</text><text x="256" y="475" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#0eAAF5" text-anchor="middle" letter-spacing="3">ATTENDANCE</text></svg>';
       return new Response(svg,{headers:{'content-type':'image/svg+xml; charset=utf-8','cache-control':'public, max-age=604800'}});
     }
 
@@ -1882,6 +2437,8 @@ async function handle(request,env){
       return new Response(bin,{headers:{'content-type':'image/png','cache-control':'public, max-age=604800'}});
     }
 
+    if(p==='/doit-logo.png'||p==='/card-artwork.png')return env.ASSETS.fetch(request);
+
     // Serve HTML
     if(p==='/admin'||p==='/manager'||p==='/poster'||p==='/register'||p==='/') {
       return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
@@ -1889,6 +2446,7 @@ async function handle(request,env){
     return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
 
   }catch(err){
+    if(String(err.message).includes('duplicate_attendance'))return json({error:'Attendance already recorded or another scan is being processed. Refresh your attendance page.'},409);
     const status=err.message.includes('Admin')?401:err.message.includes('Sign in')||err.message.includes('Session expired')?401:500;
     return json({error:err.message||'Server error'},status);
   }
